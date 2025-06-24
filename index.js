@@ -25,7 +25,7 @@ const responses = {
   menu: '¿Cómo puedo ayudarte hoy? 😊\n\n1️⃣ Valor de la consulta\n2️⃣ Agendar una hora\n3️⃣ Medios de pago\n4️⃣ Información del Médico\n5️⃣ Términos y condiciones\n6️⃣ Dejar un recado al doctor',
 
   opcion1: '¡Claro! Le comento. El doctor Sebastián es médico general. La atención es Teleconsulta y se realiza por Google Meet. El valor Fonasa es de 30 mil e Isapre 40 mil pesos. Como médico general, en caso de que el paciente requiera reposo, solo puede otorgar 14 días como máximo por consulta y en el caso de receta o receta cheque (extensión máxima de 3 meses por consulta), ésta llega de forma digital al correo del paciente durante la atención.',
-  opcion2: '¡Perfecto! Puedes agendar directamente en este enlace. ¡Será un gusto atenderte!\n\n📅 https://agendamiento.reservo.cl/makereserva/agenda/q0OWB6D0d0pBRf6L4Z64esF1k5i9N2',
+  opcion2: '¡Perfecto! Puedes agendar directamente en este enlace. ¡Será un gusto atenderte!\n\n📅 https://www.drsebastianaravena.cl',
   opcion3: 'Aceptamos pagos con tarjetas de débito y crédito luego de agendar tu hora. 💳\n\n*Importante*: Al realizar el pago, usted acepta nuestros términos y condiciones (consulte la opción 5).',
   opcion4: 'El Dr. Aravena es médico general, egresado de la Universidad de Concepción. Puedes verificar su registro profesional (Nº 763509) aquí: https://rnpi.superdesalud.gob.cl/',
   
