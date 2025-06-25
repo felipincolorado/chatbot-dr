@@ -41,7 +41,7 @@ module.exports = {
     `• Fonasa: *$30.000*\n` +
     `• Isapre o Particular: *$40.000*\n\n` +
     `💳 *Forma de pago:* Solo tarjetas mediante Webpay, al momento de agendar en el sitio web.\n\n` +
-    `📌 Al pagar, aceptas los *Términos y Condiciones* (incluye políticas de reprogramación y anulación).\n\n` +
+    `📌 Al pagar, aceptas los *Términos y Condiciones* presentes al momento de agendar (incluye políticas de reprogramación y anulación).\n\n` +
     `Presiona *2* para agendar, o *0* para volver al menú.`,
 
   // Opción 4 dividida en dos partes
