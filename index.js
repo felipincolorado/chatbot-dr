@@ -23,7 +23,10 @@ app.post('/webhook', (req, res) => {
       case '1': messageToSend = responses.opcion1; break;
       case '2': messageToSend = responses.opcion2; break;
       case '3': messageToSend = responses.opcion3; break;
-      case '4': messageToSend = responses.opcion4; break;
+      case '4':
+  twiml.message(responses.opcion4_parte1); // primer mensaje
+  twiml.message(responses.opcion4_parte2); // segundo mensaje separado
+  break;
       case '0': messageToSend = responses.menuConHeader; break;
       case 'gracias': messageToSend = responses.gracias; break;
       default: messageToSend = responses.error; break;
