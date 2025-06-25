@@ -1,41 +1,68 @@
+// index.js
+
 const express = require('express');
 const { MessagingResponse } = require('twilio').twiml;
-const app = express();
-app.use(express.urlencoded({ extended: false }));
-
 const responses = require('./responses/messages');
 const normalizeInput = require('./utils/normalizeInput');
 const { isNewSession } = require('./sessions/sessionManager');
+
+const app = express();
+app.use(express.urlencoded({ extended: false }));
 
 app.post('/webhook', (req, res) => {
   const twiml = new MessagingResponse();
   const incomingMsg = (req.body.Body || '').trim();
   const from = req.body.From;
-  let messageToSend;
+  let isHandled = false;
 
   if (!incomingMsg || typeof incomingMsg !== 'string') {
-    messageToSend = 'Lo siento, no puedo procesar ese tipo de mensaje. Por favor, responde con texto. 🙏';
+    twiml.message('Lo siento, no puedo procesar ese tipo de mensaje. Por favor, responde con texto. 🙏');
+    isHandled = true;
   } else if (isNewSession(from)) {
-    messageToSend = responses.bienvenida;
+    twiml.message(responses.bienvenida);
+    isHandled = true;
   } else {
-    const userIntent = normalizeInput(incomingMsg);
-    switch (userIntent) {
-      case '1': messageToSend = responses.opcion1; break;
-      case '2': messageToSend = responses.opcion2; break;
-      case '3': messageToSend = responses.opcion3; break;
+    const normalized = normalizeInput(incomingMsg);
+
+    switch (normalized) {
+      case '1':
+        twiml.message(responses.opcion1);
+        isHandled = true;
+        break;
+      case '2':
+        twiml.message(responses.opcion2);
+        isHandled = true;
+        break;
+      case '3':
+        twiml.message(responses.opcion3);
+        isHandled = true;
+        break;
       case '4':
-  twiml.message(responses.opcion4_parte1); // primer mensaje
-  twiml.message(responses.opcion4_parte2); // segundo mensaje separado
-  break;
-      case '0': messageToSend = responses.menuConHeader; break;
-      case 'gracias': messageToSend = responses.gracias; break;
-      default: messageToSend = responses.error; break;
+        twiml.message(responses.opcion4_parte1); // link de WhatsApp
+        twiml.message(responses.opcion4_parte2); // instrucciones posteriores
+        isHandled = true;
+        break;
+      case '0':
+        twiml.message(responses.menuConHeader);
+        isHandled = true;
+        break;
+      case 'gracias':
+        twiml.message(responses.gracias);
+        isHandled = true;
+        break;
+      default:
+        twiml.message(responses.error);
+        isHandled = true;
+        break;
     }
   }
 
-  twiml.message(messageToSend);
-  res.set('Content-Type', 'text/xml');
-  res.status(200).send(twiml.toString());
+  if (isHandled) {
+    res.set('Content-Type', 'text/xml');
+    res.status(200).send(twiml.toString());
+  } else {
+    res.status(400).send('Bad request');
+  }
 });
 
 const PORT = process.env.PORT || 3000;
