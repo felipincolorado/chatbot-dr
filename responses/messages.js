@@ -60,5 +60,5 @@ module.exports = {
     `¡De nada! 😊 Estoy para ayudarte en lo que necesites. Si tienes más dudas, puedes volver al menú escribiendo *0*.`,
 
   error:
-    `Disculpa, no logré entender tu mensaje. 🙈\n\nRecuerda que solo debes escribir el *número* de la opción que necesitas.\n\n${menuBase}`
+    `Disculpa, no logré entender tu mensaje. 🙋🏻‍♀\n\nRecuerda que solo debes escribir el *número* de la opción que necesitas.\n\n${menuBase}`
 };
