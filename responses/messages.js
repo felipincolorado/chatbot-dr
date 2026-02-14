@@ -34,7 +34,12 @@ function normalizeRut(input) {
 function buildSupportLink({ rut, motive, detail }) {
   const safeDetail = String(detail || '').trim().slice(0, 220);
 
-  const lines = ['Hola, necesito ayuda.', `RUT: ${rut}`, `Motivo: ${motive}`];
+  const lines = [
+    'Hola, necesito ayuda.',
+    `RUT: ${rut}`,
+    `Motivo: ${motive}`,
+  ];
+
   if (safeDetail) lines.push(`Detalle: ${safeDetail}`);
 
   const text = lines.join('\n');
@@ -59,27 +64,26 @@ module.exports = {
     '3 agendar · 0 menú',
 
   opcion2:
+    'Valores (pago único por la atención completa):\n' +
     'Fonasa/Dipreca: $35.000\n' +
-    'Isapre: $45.000\n\n' +
-    'Precio único por la consulta.\n' +
-    'No hay cobros extra por receta/licencia/certificados (si corresponden).\n\n' +
+    'Isapre: $45.000\n' +
+    'Sin cobros extra por licencia/receta/certificados (si corresponden).\n\n' +
     '3 agendar · 0 menú',
 
   opcion3:
-    `Agenda aquí:\n${AGENDA_URL}\n\n` +
-    'Ahí verás los horarios disponibles.\n\n' +
+    `Agenda y paga en el sitio web:\n${AGENDA_URL}\n` +
+    'Al finalizar te llegará un correo con el enlace de acceso a la teleconsulta.\n\n' +
     '0 menú',
 
   sobrecupo:
-    'Por WhatsApp no hacemos sobrecupo.\n' +
+    'La agenda disponible es la que aparece al agendar.\n' +
     'Si ya eres paciente y es un caso especial, presiona 4 (Soporte pacientes).\n' +
-    'Para agendar: 3.\n\n' +
+    `Agendar: ${AGENDA_URL}\n\n` +
     '0 menú',
 
   soporte_inicio:
     'Soporte pacientes (solo si ya te atendiste o tienes reserva).\n' +
-    'Para derivarte a WhatsApp soporte, envía tu RUT (sin puntos y con guion).\n' +
-    'Ej: 12345678-9',
+    'Para abrir el chat de soporte, envía tu RUT (sin puntos y con guion). Ej: 12345678-9',
 
   soporte_rut_invalido:
     'RUT inválido. Ejemplo: 12345678-9\n' +
@@ -93,11 +97,10 @@ module.exports = {
     '4 Otro',
 
   soporte_detalle:
-    'Escribe el detalle en 1 frase (sin datos médicos).\n' +
-    'Ej: Isapre/COMPIN rechazó el dd/mm por ____.',
+    'Escribe el detalle en 1 frase (sin datos médicos).',
 
   soporte_fin: (link) =>
-    'Abre este link para escribir por WhatsApp soporte:\n' +
+    '📲 WhatsApp soporte (mensaje listo):\n' +
     link +
     '\n\n' +
     '0 menú',
