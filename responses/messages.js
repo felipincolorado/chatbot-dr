@@ -65,25 +65,25 @@ module.exports = {
 
   opcion2:
     'Valores (pago único por la atención completa):\n' +
-    'Fonasa/Dipreca: $35.000\n' +
-    'Isapre: $45.000\n' +
+    'FONASA/DIPRECA: $35.000\n' +
+    'ISAPRE: $45.000\n' +
     'Sin cobros extra por licencia/receta/certificados (si corresponden).\n\n' +
     '3 agendar · 0 menú',
 
   opcion3:
-    `Agenda y paga en el sitio web:\n${AGENDA_URL}\n` +
-    'Al finalizar te llegará un correo con el enlace de acceso a la teleconsulta.\n\n' +
+    `Agenda y paga solo en la web:\n${AGENDA_URL}\n` +
+    'Al finalizar te llegará un correo con tu enlace de acceso a la teleconsulta.\n\n' +
     '0 menú',
 
   sobrecupo:
-    'La agenda disponible es la que aparece al agendar.\n' +
+    'Las horas disponibles son las que aparecen en la agenda web.\n' +
     'Si ya eres paciente y es un caso especial, presiona 4 (Soporte pacientes).\n' +
     `Agendar: ${AGENDA_URL}\n\n` +
     '0 menú',
 
   soporte_inicio:
     'Soporte pacientes (solo si ya te atendiste o tienes reserva).\n' +
-    'Para abrir el chat de soporte, envía tu RUT (sin puntos y con guion). Ej: 12345678-9',
+    'Para enviar tu caso al equipo por WhatsApp, primero envía tu RUT (sin puntos y con guion). Ej: 12345678-9',
 
   soporte_rut_invalido:
     'RUT inválido. Ejemplo: 12345678-9\n' +
@@ -100,7 +100,7 @@ module.exports = {
     'Escribe el detalle en 1 frase (sin datos médicos).',
 
   soporte_fin: (link) =>
-    '📲 WhatsApp soporte (mensaje listo):\n' +
+    '✅ Iniciar chat en WhatsApp (soporte)\n' +
     link +
     '\n\n' +
     '0 menú',
