@@ -1,17 +1,30 @@
-const SESSION_TIMEOUT = 15 * 60 * 1000;
+const SESSION_TIMEOUT = 15 * 60 * 1000; // 15 min
 const userSessions = {};
 
-function isNewSession(from) {
+function getSession(from) {
   const now = Date.now();
-  const session = userSessions[from];
+  const prev = userSessions[from];
 
-  if (!session || (now - session.lastInteraction > SESSION_TIMEOUT)) {
-    userSessions[from] = { lastInteraction: now };
-    return true;
+  const isNew = !prev || (now - prev.lastInteraction > SESSION_TIMEOUT);
+
+  if (isNew) {
+    userSessions[from] = {
+      lastInteraction: now,
+      state: 'MENU', // MENU | SUPPORT_RUT | SUPPORT_MOTIVE | SUPPORT_DETAIL
+      support: { rut: '', motive: '', detail: '' },
+      isNew: true
+    };
+    return userSessions[from];
   }
 
-  userSessions[from].lastInteraction = now;
-  return false;
+  prev.lastInteraction = now;
+  prev.isNew = false;
+  return prev;
 }
 
-module.exports = { isNewSession };
+function resetSupport(session) {
+  session.state = 'MENU';
+  session.support = { rut: '', motive: '', detail: '' };
+}
+
+module.exports = { getSession, resetSupport };
