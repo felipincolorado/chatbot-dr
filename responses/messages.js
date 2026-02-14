@@ -108,7 +108,7 @@ module.exports = {
 
   // Mensaje previo antes de mandar el link (para que no parezca virus)
   soporte_derivacion_prev:
-    'Listo. Para iniciar el chat de soporte en WhatsApp, te enviaré el enlace a continuación.',
+    'Listo. ya puedes iniciar el chat de soporte en WhatsApp',
 
   gracias: 'De nada. 0 menú',
 
