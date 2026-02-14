@@ -2,12 +2,18 @@
 
 const express = require('express');
 const { MessagingResponse } = require('twilio').twiml;
+
 const responses = require('./responses/messages');
 const normalizeInput = require('./utils/normalizeInput');
 const { getSession, resetSupport } = require('./sessions/sessionManager');
 
 const app = express();
-app.use(express.urlencoded({ extended: false }));
+
+// Aumenta límite por seguridad (evita errores tipo "entity too large")
+app.use(express.urlencoded({ extended: false, limit: '1mb' }));
+
+// Healthcheck simple (algunas plataformas lo necesitan)
+app.get('/', (req, res) => res.status(200).send('ok'));
 
 function normalizeRut(input) {
   const raw = String(input || '')
@@ -15,72 +21,68 @@ function normalizeRut(input) {
     .replace(/\./g, '')
     .replace(/\s/g, '');
 
-  // acepta 12345678-9 o 123456789 (sin guion)
+  // 12345678-9 o 123456789 (sin guion)
   if (/^\d{7,8}-[\dk]$/.test(raw)) return raw;
   if (/^\d{8,9}$/.test(raw)) return raw.slice(0, -1) + '-' + raw.slice(-1);
   return null;
 }
 
+function sendTwiml(res, twiml) {
+  res.set('Content-Type', 'text/xml');
+  return res.status(200).send(twiml.toString());
+}
+
 app.post('/webhook', (req, res) => {
   const twiml = new MessagingResponse();
-  const incomingMsg = (req.body.Body || '').trim();
-  const from = req.body.From;
+
+  const from = req.body && req.body.From;
+  const incomingMsg = ((req.body && req.body.Body) || '').trim();
 
   const session = getSession(from);
 
-  // primer mensaje de sesión
+  // Si la sesión expiró por inactividad: reiniciamos y mostramos menú
   if (session.isNew) {
     twiml.message(responses.bienvenida);
-    res.set('Content-Type', 'text/xml');
-    return res.status(200).send(twiml.toString());
+    return sendTwiml(res, twiml);
   }
 
-  // validación mínima
+  // Validación mínima
   if (!incomingMsg || typeof incomingMsg !== 'string') {
-    twiml.message('No puedo procesar ese mensaje. Responde con texto.');
-    res.set('Content-Type', 'text/xml');
-    return res.status(200).send(twiml.toString());
+    twiml.message(responses.errorBasico);
+    return sendTwiml(res, twiml);
   }
 
+  // Comando menú
   const normalized = normalizeInput(incomingMsg);
-
-  // salir a menú siempre
   if (normalized === '0') {
     resetSupport(session);
     twiml.message(responses.menuConHeader);
-    res.set('Content-Type', 'text/xml');
-    return res.status(200).send(twiml.toString());
+    return sendTwiml(res, twiml);
   }
 
-  // flujo soporte (4) por estados
+  // ==== FLUJO SOPORTE (opción 4) ====
   if (session.state === 'SUPPORT_NAME') {
-    const maybeRut = normalizeRut(incomingMsg);
     const name = String(incomingMsg || '').trim();
-
-    if (maybeRut) {
-      twiml.message('Primero escribe tu nombre y apellido (después te pediré el RUT).');
-    } else if (name.length < 3) {
-      twiml.message('Escribe tu nombre y apellido.');
-    } else {
-      session.support.name = name.slice(0, 60);
-      session.state = 'SUPPORT_RUT';
-      twiml.message(responses.soporte_rut);
+    if (name.length < 3) {
+      twiml.message('Escribe tu nombre y apellido (ej: Juan Pérez).');
+      return sendTwiml(res, twiml);
     }
-    res.set('Content-Type', 'text/xml');
-    return res.status(200).send(twiml.toString());
+    session.support.name = name.slice(0, 60);
+    session.state = 'SUPPORT_RUT';
+    twiml.message('Gracias. Ahora envía tu RUT (sin puntos y con guion).');
+    return sendTwiml(res, twiml);
   }
 
   if (session.state === 'SUPPORT_RUT') {
     const rut = normalizeRut(incomingMsg);
     if (!rut) {
       twiml.message('RUT inválido. Ej: 12345678-9');
-    } else {
-      session.support.rut = rut;
-      session.state = 'SUPPORT_MOTIVE';
-      twiml.message(responses.soporte_motivo);
+      return sendTwiml(res, twiml);
     }
-    res.set('Content-Type', 'text/xml');
-    return res.status(200).send(twiml.toString());
+    session.support.rut = rut;
+    session.state = 'SUPPORT_MOTIVE';
+    twiml.message(responses.soporte_motivo);
+    return sendTwiml(res, twiml);
   }
 
   if (session.state === 'SUPPORT_MOTIVE') {
@@ -91,39 +93,50 @@ app.post('/webhook', (req, res) => {
       '4': 'Otro',
     };
     const key = String(incomingMsg || '').trim();
+
     if (!map[key]) {
       twiml.message(responses.soporte_motivo);
-    } else {
-      session.support.motive = map[key];
-      session.state = 'SUPPORT_DETAIL';
-      twiml.message(session.support.motive === 'Licencia rechazada' ? responses.soporte_detalle_licencia : responses.soporte_detalle);
+      return sendTwiml(res, twiml);
     }
-    res.set('Content-Type', 'text/xml');
-    return res.status(200).send(twiml.toString());
+
+    session.support.motive = map[key];
+    session.state = 'SUPPORT_DETAIL';
+
+    if (key === '1') {
+      twiml.message('Detalle en 1 frase (sin datos médicos). Ej: Isapre/COMPIN rechazó el dd/mm por ____.');
+    } else {
+      twiml.message(responses.soporte_detalle);
+    }
+
+    return sendTwiml(res, twiml);
   }
 
   if (session.state === 'SUPPORT_DETAIL') {
     const detail = String(incomingMsg || '').trim();
     if (detail.length < 3) {
-      twiml.message(session.support.motive === 'Licencia rechazada' ? responses.soporte_detalle_licencia : responses.soporte_detalle);
-    } else {
-      session.support.detail = detail;
-      twiml.message(responses.soporte_fin_msg1());
-      twiml.message(
-        responses.soporte_fin_msg2({
-          rut: session.support.rut,
-          name: session.support.name,
-          motive: session.support.motive,
-          detail: session.support.detail,
-        })
-      );
-      resetSupport(session);
+      twiml.message(responses.soporte_detalle);
+      return sendTwiml(res, twiml);
     }
-    res.set('Content-Type', 'text/xml');
-    return res.status(200).send(twiml.toString());
+
+    session.support.detail = detail.slice(0, 300);
+
+    // Mensaje 1: link corto + instrucción
+    twiml.message(responses.soporte_link);
+    // Mensaje 2: solo el texto para copiar/pegar
+    twiml.message(
+      responses.soporte_texto({
+        name: session.support.name,
+        rut: session.support.rut,
+        motive: session.support.motive,
+        detail: session.support.detail,
+      })
+    );
+
+    resetSupport(session);
+    return sendTwiml(res, twiml);
   }
 
-  // flujo menú normal
+  // ==== MENÚ NORMAL ====
   switch (normalized) {
     case '1':
       twiml.message(responses.opcion1);
@@ -135,26 +148,44 @@ app.post('/webhook', (req, res) => {
       twiml.message(responses.opcion3);
       break;
     case '4':
+      // soporte empieza pidiendo nombre
       session.state = 'SUPPORT_NAME';
-      twiml.message(responses.soporte_nombre);
+      twiml.message('Nombre y apellido:');
       break;
     case 'sobrecupo':
-      twiml.message(responses.sobrecupo);
+      twiml.message(responses.sobrecupoSuave);
       break;
     case 'gracias':
       twiml.message(responses.gracias);
       break;
     default:
-      // si no hay palabra clave: obligar a números
+      // Si no entiende: mostrar menú (corto)
       twiml.message(responses.error);
       break;
   }
 
-  res.set('Content-Type', 'text/xml');
-  res.status(200).send(twiml.toString());
+  return sendTwiml(res, twiml);
+});
+
+// Handler de errores (incluye body-parser/express)
+app.use((err, req, res, next) => {
+  try {
+    console.error('❌ Error middleware:', err && (err.message || err));
+  } catch (_) {}
+
+  const twiml = new MessagingResponse();
+
+  // Si el error es por tamaño de cuerpo
+  if (err && err.type === 'entity.too.large') {
+    twiml.message('Mensaje demasiado largo. Responde con 1, 2, 3, 4 o 0.');
+    return sendTwiml(res, twiml);
+  }
+
+  twiml.message('Hubo un error. Responde 0 para volver al menú.');
+  return sendTwiml(res, twiml);
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`✅ Miriam Bot v2 corriendo en puerto ${PORT}`);
+  console.log(`✅ Miriam Bot v3 corriendo en puerto ${PORT}`);
 });

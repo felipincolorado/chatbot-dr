@@ -1,20 +1,25 @@
-const SESSION_TIMEOUT = 15 * 60 * 1000; // 15 min
+// sessions/sessionManager.js
+
+// Sesión en memoria (simple). Si se reinicia el servidor, se reinician las sesiones.
+const SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 min
+
 const userSessions = {};
 
 function getSession(from) {
+  const key = from || 'unknown';
   const now = Date.now();
-  const prev = userSessions[from];
+  const prev = userSessions[key];
 
-  const isNew = !prev || (now - prev.lastInteraction > SESSION_TIMEOUT);
+  const isNew = !prev || now - prev.lastInteraction > SESSION_TIMEOUT_MS;
 
   if (isNew) {
-    userSessions[from] = {
+    userSessions[key] = {
       lastInteraction: now,
-      state: 'MENU', // MENU | SUPPORT_RUT | SUPPORT_MOTIVE | SUPPORT_DETAIL
-      support: { rut: '', motive: '', detail: '' },
-      isNew: true
+      isNew: true,
+      state: 'MENU', // MENU | SUPPORT_NAME | SUPPORT_RUT | SUPPORT_MOTIVE | SUPPORT_DETAIL
+      support: { name: '', rut: '', motive: '', detail: '' },
     };
-    return userSessions[from];
+    return userSessions[key];
   }
 
   prev.lastInteraction = now;
@@ -23,8 +28,9 @@ function getSession(from) {
 }
 
 function resetSupport(session) {
+  if (!session) return;
   session.state = 'MENU';
-  session.support = { rut: '', motive: '', detail: '' };
+  session.support = { name: '', rut: '', motive: '', detail: '' };
 }
 
 module.exports = { getSession, resetSupport };

@@ -1,7 +1,7 @@
 // responses/messages.js
 
 const AGENDA_URL = 'https://drsebastianaravena.cl/agendar/';
-const HUMAN_WA_BASE = 'https://wa.me/56926125661';
+const HUMAN_WA_LINK = 'https://wa.me/56926125661';
 
 const menuBase =
   'Responde con un número:\n\n' +
@@ -9,29 +9,14 @@ const menuBase =
   '2️⃣ Valores\n' +
   '3️⃣ Agendar\n' +
   '4️⃣ Soporte pacientes\n\n' +
-  '0️⃣ Menú\n\n' +
-  'No hay sobrecupo.';
-
-function buildHumanWaLink({ rut, motive, detail }) {
-  const safeDetail = String(detail || '').trim().slice(0, 240);
-
-  const text =
-    'Hola. Soy paciente del Dr. Sebastián Aravena.\n' +
-    `RUT: ${rut}\n` +
-    `Motivo: ${motive}\n` +
-    `Detalle: ${safeDetail}`;
-
-  return `${HUMAN_WA_BASE}?text=${encodeURIComponent(text)}`;
-}
+  '0️⃣ Menú';
 
 module.exports = {
   bienvenida:
-    `Hola, soy Miriam 👩‍💼, asistente virtual del Dr. Sebastián Aravena.\n\n${menuBase}`,
+    'Hola, soy Miriam 👩‍💼, asistente virtual del Dr. Sebastián Aravena.\n\n' +
+    menuBase,
 
-  menu: menuBase,
-
-  menuConHeader:
-    `Opciones:\n\n${menuBase}`,
+  menuConHeader: 'Opciones:\n\n' + menuBase,
 
   opcion1:
     'La licencia médica no se vende. Se define solo en consulta, según evaluación.\n' +
@@ -45,16 +30,15 @@ module.exports = {
     '3 agendar · 0 menú',
 
   opcion3:
-    `Agenda aquí:\n${AGENDA_URL}\n\n0 menú`,
+    'Agenda aquí:\n' + AGENDA_URL + '\n' +
+    'La disponibilidad es la que aparece en la agenda.\n\n' +
+    '0 menú',
 
-  sobrecupo:
-    'No hay sobrecupo.\n' +
+  // Respuesta suave para "sobrecupo"
+  sobrecupoSuave:
+    'La disponibilidad es la que aparece al agendar.\n' +
     'Si ya eres paciente y es un caso especial, presiona 4 (Soporte pacientes).\n' +
     'Para agendar: 3.',
-
-  soporte_rut:
-    'Soporte pacientes (solo si ya te atendiste o tienes reserva).\n' +
-    'Envía tu RUT (sin puntos y con guion).',
 
   soporte_motivo:
     'Motivo:\n' +
@@ -66,12 +50,19 @@ module.exports = {
   soporte_detalle:
     'Detalle en 1 frase (sin datos médicos).',
 
-  soporte_fin: ({ rut, motive, detail }) => {
-    const link = buildHumanWaLink({ rut, motive, detail });
+  // Mensaje 1: link corto
+  soporte_link:
+    'WhatsApp soporte:\n' +
+    HUMAN_WA_LINK +
+    '\n\nCopia y pega el siguiente mensaje:',
+
+  // Mensaje 2: solo texto copiable
+  soporte_texto: ({ name, rut, motive, detail }) => {
     return (
-      'Abre este link para escribir a soporte (mensaje listo):\n' +
-      link +
-      '\n\n0 menú'
+      `Hola, soy ${name}. Necesito ayuda.\n` +
+      `RUT: ${rut}\n` +
+      `Motivo: ${motive}\n` +
+      `Detalle: ${detail}`
     );
   },
 
@@ -80,4 +71,6 @@ module.exports = {
   error:
     'No entendí.\n' +
     'Responde con 1, 2, 3, 4 o 0.',
+
+  errorBasico: 'No puedo procesar ese mensaje. Responde con texto.',
 };
