@@ -40,6 +40,12 @@ module.exports = {
     'Si ya eres paciente y es un caso especial, presiona 4 (Soporte pacientes).\n' +
     'Para agendar: 3.',
 
+  // Inicio soporte (explica por qué se piden datos)
+  soporte_inicio:
+    'Soporte pacientes (solo si ya te atendiste o tienes reserva).\n' +
+    'Para poder ayudarte, completa estos datos. Te respondemos cuando estemos disponibles.\n\n' +
+    '1/4 Nombre y apellido:',
+
   soporte_motivo:
     'Motivo:\n' +
     '1 Licencia rechazada\n' +
@@ -47,19 +53,18 @@ module.exports = {
     '3 Problemas al agendar\n' +
     '4 Otro',
 
-  soporte_detalle:
-    'Detalle en 1 frase (sin datos médicos).',
+  soporte_detalle: 'Detalle en 1 frase (sin datos médicos).',
 
-  // Mensaje 1: link corto
+  // Mensaje 1: link corto (separado para que el 2º mensaje sea copiable)
   soporte_link:
     'WhatsApp soporte:\n' +
     HUMAN_WA_LINK +
-    '\n\nCopia y pega el siguiente mensaje:',
+    '\n\nCopia y pega el mensaje que te envío a continuación.',
 
   // Mensaje 2: solo texto copiable
   soporte_texto: ({ name, rut, motive, detail }) => {
     return (
-      `Hola, soy ${name}. Necesito ayuda.\n` +
+      `Hola, soy ${name}. Necesito soporte.\n` +
       `RUT: ${rut}\n` +
       `Motivo: ${motive}\n` +
       `Detalle: ${detail}`
@@ -68,9 +73,7 @@ module.exports = {
 
   gracias: 'De nada. 0 menú',
 
-  error:
-    'No entendí.\n' +
-    'Responde con 1, 2, 3, 4 o 0.',
+  error: 'No entendí. Responde con 1, 2, 3, 4 o 0.',
 
   errorBasico: 'No puedo procesar ese mensaje. Responde con texto.',
 };

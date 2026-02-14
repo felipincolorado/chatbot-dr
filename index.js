@@ -64,12 +64,12 @@ app.post('/webhook', (req, res) => {
   if (session.state === 'SUPPORT_NAME') {
     const name = String(incomingMsg || '').trim();
     if (name.length < 3) {
-      twiml.message('Escribe tu nombre y apellido (ej: Juan Pérez).');
+      twiml.message('Nombre y apellido (ej: Juan Pérez).');
       return sendTwiml(res, twiml);
     }
     session.support.name = name.slice(0, 60);
     session.state = 'SUPPORT_RUT';
-    twiml.message('Gracias. Ahora envía tu RUT (sin puntos y con guion).');
+    twiml.message('2/4 RUT (sin puntos y con guion):');
     return sendTwiml(res, twiml);
   }
 
@@ -81,6 +81,7 @@ app.post('/webhook', (req, res) => {
     }
     session.support.rut = rut;
     session.state = 'SUPPORT_MOTIVE';
+    twiml.message('3/4 Elige un motivo:');
     twiml.message(responses.soporte_motivo);
     return sendTwiml(res, twiml);
   }
@@ -95,7 +96,8 @@ app.post('/webhook', (req, res) => {
     const key = String(incomingMsg || '').trim();
 
     if (!map[key]) {
-      twiml.message(responses.soporte_motivo);
+      twiml.message('3/4 Elige un motivo:');
+    twiml.message(responses.soporte_motivo);
       return sendTwiml(res, twiml);
     }
 
@@ -103,9 +105,9 @@ app.post('/webhook', (req, res) => {
     session.state = 'SUPPORT_DETAIL';
 
     if (key === '1') {
-      twiml.message('Detalle en 1 frase (sin datos médicos). Ej: Isapre/COMPIN rechazó el dd/mm por ____.');
+      twiml.message('4/4 Detalle en 1 frase (sin datos médicos). Ej: Isapre/COMPIN rechazó el dd/mm por ____.');
     } else {
-      twiml.message(responses.soporte_detalle);
+      twiml.message('4/4 ' + responses.soporte_detalle);
     }
 
     return sendTwiml(res, twiml);
@@ -114,7 +116,7 @@ app.post('/webhook', (req, res) => {
   if (session.state === 'SUPPORT_DETAIL') {
     const detail = String(incomingMsg || '').trim();
     if (detail.length < 3) {
-      twiml.message(responses.soporte_detalle);
+      twiml.message('4/4 ' + responses.soporte_detalle);
       return sendTwiml(res, twiml);
     }
 
@@ -150,7 +152,7 @@ app.post('/webhook', (req, res) => {
     case '4':
       // soporte empieza pidiendo nombre
       session.state = 'SUPPORT_NAME';
-      twiml.message('Nombre y apellido:');
+      twiml.message(responses.soporte_inicio);
       break;
     case 'sobrecupo':
       twiml.message(responses.sobrecupoSuave);
