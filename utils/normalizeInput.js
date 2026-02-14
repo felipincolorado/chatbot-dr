@@ -39,7 +39,7 @@ module.exports = function normalizeInput(text) {
   if (hasAny(t, ['sobrecupo', 'sobre cupo', 'urgente', 'hoy', 'ahora'])) return 'sobrecupo';
 
   if (hasAny(t, ['licencia', 'reposo', 'rechazada', 'compin'])) return '1';
-  if (hasAny(t, ['valor', 'precio', 'costo', 'fonasa', 'isapre', 'particular'])) return '2';
+  if (hasAny(t, ['valor', 'precio', 'costo', 'fonasa', 'dipreca', 'isapre'])) return '2';
   if (hasAny(t, ['agendar', 'agenda', 'hora', 'cita', 'reservar'])) return '3';
   if (hasAny(t, ['soporte', 'paciente', 'problema', 'reembolso', 'reprogramar', 'reprogramacion', 'error'])) return '4';
   if (hasAny(t, ['gracias', 'muchas gracias', 'grac'])) return 'gracias';

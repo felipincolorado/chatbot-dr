@@ -3,13 +3,14 @@
 const AGENDA_URL = 'https://drsebastianaravena.cl/agendar/';
 const HUMAN_WA_BASE = 'https://wa.me/56926125661';
 
-const menuBase =
-  'Responde con un número:\n' +
-  '1️⃣ Licencia\n' +
-  '2️⃣ Valores\n' +
-  '3️⃣ Agendar\n' +
-  '4️⃣ Soporte pacientes\n' +
-  '0️⃣ Menú';
+const menuBase = [
+  'Responde con un número:',
+  '1️⃣ Licencia',
+  '2️⃣ Valores',
+  '3️⃣ Agendar',
+  '4️⃣ Soporte pacientes',
+  '0️⃣ Menú',
+].join('\n');
 
 function stripAccents(str) {
   try {
@@ -35,12 +36,14 @@ function buildSupportLink({ rut, motive, detail }) {
   const safeDetail = String(detail || '').trim().slice(0, 220);
 
   const lines = [
-    'Hola, necesito ayuda.',
+    'Hola, mi situación es:',
     `RUT: ${rut}`,
     `Motivo: ${motive}`,
   ];
 
+  // Si no hay detalle, dejamos "Detalle:" para que lo completen al abrir WhatsApp.
   if (safeDetail) lines.push(`Detalle: ${safeDetail}`);
+  else lines.push('Detalle:');
 
   const text = lines.join('\n');
   return `${HUMAN_WA_BASE}?text=${encodeURIComponent(text)}`;
@@ -64,26 +67,26 @@ module.exports = {
     '3 agendar · 0 menú',
 
   opcion2:
-    'Valores (pago único por la atención completa):\n' +
-    'FONASA/DIPRECA: $35.000\n' +
-    'ISAPRE: $45.000\n' +
-    'Sin cobros extra por licencia/receta/certificados (si corresponden).\n\n' +
+    'Valores (precio único por atención completa):\n' +
+    'Fonasa/Dipreca: $35.000\n' +
+    'Isapre: $45.000\n' +
+    'No hay cobros adicionales por licencia/receta/certificado (si corresponde).\n\n' +
     '3 agendar · 0 menú',
 
   opcion3:
-    `Agenda y paga solo en la web:\n${AGENDA_URL}\n` +
-    'Al finalizar te llegará un correo con tu enlace de acceso a la teleconsulta.\n\n' +
+    `Agenda y paga en la web:\n${AGENDA_URL}\n` +
+    'Al finalizar te llegará un correo con el enlace de acceso a la teleconsulta.\n\n' +
     '0 menú',
 
   sobrecupo:
-    'Las horas disponibles son las que aparecen en la agenda web.\n' +
+    'La agenda disponible es la que aparece al agendar.\n' +
     'Si ya eres paciente y es un caso especial, presiona 4 (Soporte pacientes).\n' +
-    `Agendar: ${AGENDA_URL}\n\n` +
+    'Para agendar: 3.\n\n' +
     '0 menú',
 
   soporte_inicio:
     'Soporte pacientes (solo si ya te atendiste o tienes reserva).\n' +
-    'Para enviar tu caso al equipo por WhatsApp, primero envía tu RUT (sin puntos y con guion). Ej: 12345678-9',
+    'Envía tu RUT (sin puntos y con guion). Ej: 12345678-9',
 
   soporte_rut_invalido:
     'RUT inválido. Ejemplo: 12345678-9\n' +
@@ -99,11 +102,8 @@ module.exports = {
   soporte_detalle:
     'Escribe el detalle en 1 frase (sin datos médicos).',
 
-  soporte_fin: (link) =>
-    '✅ Iniciar chat en WhatsApp (soporte)\n' +
-    link +
-    '\n\n' +
-    '0 menú',
+  // Para maximizar que WhatsApp muestre la previsualización/botón, devolvemos SOLO el link.
+  soporte_fin: (link) => link,
 
   gracias: 'De nada. 0 menú',
 
