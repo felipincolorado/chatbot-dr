@@ -34,12 +34,7 @@ function normalizeRut(input) {
 function buildSupportLink({ rut, motive, detail }) {
   const safeDetail = String(detail || '').trim().slice(0, 220);
 
-  const lines = [
-    'Hola, necesito ayuda.',
-    `RUT: ${rut}`,
-    `Motivo: ${motive}`,
-  ];
-
+  const lines = ['Hola, necesito ayuda.', `RUT: ${rut}`, `Motivo: ${motive}`];
   if (safeDetail) lines.push(`Detalle: ${safeDetail}`);
 
   const text = lines.join('\n');
@@ -64,27 +59,27 @@ module.exports = {
     '3 agendar · 0 menú',
 
   opcion2:
-    'Fonasa: $35.000\n' +
-    'Particular/Isapre: $45.000\n\n' +
+    'Fonasa/Dipreca: $35.000\n' +
+    'Isapre: $45.000\n\n' +
+    'Precio único por la consulta.\n' +
+    'No hay cobros extra por receta/licencia/certificados (si corresponden).\n\n' +
     '3 agendar · 0 menú',
 
   opcion3:
-    `Agenda aquí:\n${AGENDA_URL}\n` +
-    'La disponibilidad es la que aparece en la agenda.\n\n' +
+    `Agenda aquí:\n${AGENDA_URL}\n\n` +
+    'Ahí verás los horarios disponibles.\n\n' +
     '0 menú',
 
   sobrecupo:
-    'La disponibilidad es la que aparece al agendar.\n' +
+    'Por WhatsApp no hacemos sobrecupo.\n' +
     'Si ya eres paciente y es un caso especial, presiona 4 (Soporte pacientes).\n' +
     'Para agendar: 3.\n\n' +
     '0 menú',
 
-  soporte_intro:
+  soporte_inicio:
     'Soporte pacientes (solo si ya te atendiste o tienes reserva).\n' +
-    'Para enviar tu caso al equipo, completa estos datos.',
-
-  soporte_rut:
-    'Envía tu RUT (sin puntos y con guion). Ej: 12345678-9',
+    'Para derivarte a WhatsApp soporte, envía tu RUT (sin puntos y con guion).\n' +
+    'Ej: 12345678-9',
 
   soporte_rut_invalido:
     'RUT inválido. Ejemplo: 12345678-9\n' +
@@ -98,7 +93,8 @@ module.exports = {
     '4 Otro',
 
   soporte_detalle:
-    'Escribe el detalle en 1 frase (sin datos médicos).',
+    'Escribe el detalle en 1 frase (sin datos médicos).\n' +
+    'Ej: Isapre/COMPIN rechazó el dd/mm por ____.',
 
   soporte_fin: (link) =>
     'Abre este link para escribir por WhatsApp soporte:\n' +

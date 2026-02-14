@@ -125,8 +125,7 @@ app.post('/webhook', (req, res) => {
         break;
       case '4':
         session.state = 'SUPPORT_RUT';
-        twiml.message(responses.soporte_intro);
-        twiml.message(responses.soporte_rut);
+        twiml.message(responses.soporte_inicio);
         break;
       case 'sobrecupo':
         twiml.message(responses.sobrecupo);
@@ -152,5 +151,5 @@ app.post('/webhook', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`✅ Miriam Bot v10 corriendo en puerto ${PORT}`);
+  console.log(`✅ Miriam Bot v11 corriendo en puerto ${PORT}`);
 });

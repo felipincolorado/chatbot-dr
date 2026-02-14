@@ -1,6 +1,6 @@
 {
   "name": "bot-whatsapp-aravena",
-  "version": "10.0.0",
+  "version": "3.1.0",
   "description": "Asistente virtual para WhatsApp del Dr. Aravena",
   "main": "index.js",
   "scripts": {
