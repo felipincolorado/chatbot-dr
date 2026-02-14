@@ -89,7 +89,7 @@ module.exports = {
   // Soporte: un solo mensaje de entrada (evita “al revés”)
   soporte_inicio:
     'Soporte pacientes (solo si ya te atendiste o tienes reserva).\n' +
-    'Para derivarte a WhatsApp soporte, envía tu RUT (sin puntos y con guion).\n' +
+    'Para enviar tu caso al equipo, envía tu RUT (sin puntos y con guion).\n' +
     'Ej: 12345678-9',
 
   soporte_rut_invalido:
@@ -108,7 +108,7 @@ module.exports = {
 
   // Mensaje previo antes de mandar el link (para que no parezca virus)
   soporte_derivacion_prev:
-    'Listo. En 2 segundos te llegará el botón para “Iniciar chat” en WhatsApp soporte.',
+    'Listo. Para iniciar el chat de soporte en WhatsApp, te enviaré el enlace a continuación.',
 
   gracias: 'De nada. 0 menú',
 

@@ -12,14 +12,22 @@ const app = express();
 // Twilio manda x-www-form-urlencoded
 app.use(express.urlencoded({ extended: false, limit: '50kb' }));
 
+function getTwilioCreds() {
+  const accountSid = process.env.TWILIO_ACCOUNT_SID || process.env.ACCOUNT_SID;
+  const authToken = process.env.TWILIO_AUTH_TOKEN || process.env.AUTH_TOKEN;
+  return { accountSid, authToken };
+}
+
 function canSendProactive() {
-  return Boolean(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN);
+  const { accountSid, authToken } = getTwilioCreds();
+  return Boolean(accountSid && authToken);
 }
 
 function sendDelayedWhatsAppMessage({ to, from, body, delayMs = 1500 }) {
   if (!canSendProactive()) return false;
 
-  const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+  const { accountSid, authToken } = getTwilioCreds();
+  const client = twilio(accountSid, authToken);
 
   setTimeout(() => {
     client.messages
@@ -118,12 +126,12 @@ app.post('/webhook', (req, res) => {
         to: from,
         from: toNumber,
         body: link,
-        delayMs: 1500,
+        delayMs: 2000,
       });
 
       // Si no hay credenciales para envío diferido, manda el link en el mismo mensaje (fallback)
       if (!scheduled) {
-        twiml.message(link);
+        twiml.message(`✅ Iniciar chat en WhatsApp (soporte)\n${link}`);
       }
 
       resetSupport(session);
@@ -153,11 +161,11 @@ app.post('/webhook', (req, res) => {
         to: from,
         from: toNumber,
         body: link,
-        delayMs: 1500,
+        delayMs: 2000,
       });
 
       if (!scheduled) {
-        twiml.message(link);
+        twiml.message(`✅ Iniciar chat en WhatsApp (soporte)\n${link}`);
       }
 
       resetSupport(session);
