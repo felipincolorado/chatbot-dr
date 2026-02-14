@@ -126,7 +126,7 @@ app.post('/webhook', (req, res) => {
         to: from,
         from: toNumber,
         body: link,
-        delayMs: 2000,
+        delayMs: 1800,
       });
 
       // Si no hay credenciales para envío diferido, manda el link en el mismo mensaje (fallback)
@@ -161,7 +161,7 @@ app.post('/webhook', (req, res) => {
         to: from,
         from: toNumber,
         body: link,
-        delayMs: 2000,
+        delayMs: 1800,
       });
 
       if (!scheduled) {
@@ -188,6 +188,10 @@ app.post('/webhook', (req, res) => {
         session.state = 'SUPPORT_RUT';
         twiml.message(responses.soporte_inicio);
         break;
+      case 'hola':
+        resetSupport(session);
+        twiml.message(responses.bienvenida);
+        break;
       case 'sobrecupo':
         twiml.message(responses.sobrecupo);
         break;
@@ -213,5 +217,5 @@ app.post('/webhook', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`✅ Miriam Bot v16 corriendo en puerto ${PORT}`);
+  console.log(`✅ Miriam Bot v18 corriendo en puerto ${PORT}`);
 });
