@@ -53,6 +53,23 @@ app.post('/webhook', (req, res) => {
   }
 
   // flujo soporte (4) por estados
+  if (session.state === 'SUPPORT_NAME') {
+    const maybeRut = normalizeRut(incomingMsg);
+    const name = String(incomingMsg || '').trim();
+
+    if (maybeRut) {
+      twiml.message('Primero escribe tu nombre y apellido (después te pediré el RUT).');
+    } else if (name.length < 3) {
+      twiml.message('Escribe tu nombre y apellido.');
+    } else {
+      session.support.name = name.slice(0, 60);
+      session.state = 'SUPPORT_RUT';
+      twiml.message(responses.soporte_rut);
+    }
+    res.set('Content-Type', 'text/xml');
+    return res.status(200).send(twiml.toString());
+  }
+
   if (session.state === 'SUPPORT_RUT') {
     const rut = normalizeRut(incomingMsg);
     if (!rut) {
@@ -79,7 +96,7 @@ app.post('/webhook', (req, res) => {
     } else {
       session.support.motive = map[key];
       session.state = 'SUPPORT_DETAIL';
-      twiml.message(responses.soporte_detalle);
+      twiml.message(session.support.motive === 'Licencia rechazada' ? responses.soporte_detalle_licencia : responses.soporte_detalle);
     }
     res.set('Content-Type', 'text/xml');
     return res.status(200).send(twiml.toString());
@@ -88,12 +105,14 @@ app.post('/webhook', (req, res) => {
   if (session.state === 'SUPPORT_DETAIL') {
     const detail = String(incomingMsg || '').trim();
     if (detail.length < 3) {
-      twiml.message(responses.soporte_detalle);
+      twiml.message(session.support.motive === 'Licencia rechazada' ? responses.soporte_detalle_licencia : responses.soporte_detalle);
     } else {
       session.support.detail = detail;
+      twiml.message(responses.soporte_fin_msg1());
       twiml.message(
-        responses.soporte_fin({
+        responses.soporte_fin_msg2({
           rut: session.support.rut,
+          name: session.support.name,
           motive: session.support.motive,
           detail: session.support.detail,
         })
@@ -116,8 +135,8 @@ app.post('/webhook', (req, res) => {
       twiml.message(responses.opcion3);
       break;
     case '4':
-      session.state = 'SUPPORT_RUT';
-      twiml.message(responses.soporte_rut);
+      session.state = 'SUPPORT_NAME';
+      twiml.message(responses.soporte_nombre);
       break;
     case 'sobrecupo':
       twiml.message(responses.sobrecupo);
