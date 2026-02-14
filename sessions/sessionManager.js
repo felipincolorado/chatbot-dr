@@ -1,36 +1,40 @@
 // sessions/sessionManager.js
+const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutos
 
-// Sesión en memoria (simple). Si se reinicia el servidor, se reinician las sesiones.
-const SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 min
-
-const userSessions = {};
+function now() {
+  return Date.now();
+}
 
 function getSession(from) {
-  const key = from || 'unknown';
-  const now = Date.now();
-  const prev = userSessions[key];
+  const store = global.__USER_SESSIONS__ || (global.__USER_SESSIONS__ = {});
+  const s = store[from];
 
-  const isNew = !prev || now - prev.lastInteraction > SESSION_TIMEOUT_MS;
+  const isNew = !s || now() - s.lastInteraction > SESSION_TIMEOUT;
 
   if (isNew) {
-    userSessions[key] = {
-      lastInteraction: now,
+    store[from] = {
+      lastInteraction: now(),
+      state: "MENU", // MENU | SUPPORT_RUT | SUPPORT_MOTIVE | SUPPORT_DETAIL
       isNew: true,
-      state: 'MENU', // MENU | SUPPORT_NAME | SUPPORT_RUT | SUPPORT_MOTIVE | SUPPORT_DETAIL
-      support: { name: '', rut: '', motive: '', detail: '' },
+      support: { rut: "", motive: "", detail: "" },
     };
-    return userSessions[key];
+    return store[from];
   }
 
-  prev.lastInteraction = now;
-  prev.isNew = false;
-  return prev;
+  s.lastInteraction = now();
+  s.isNew = false;
+  return s;
 }
 
 function resetSupport(session) {
-  if (!session) return;
-  session.state = 'MENU';
-  session.support = { name: '', rut: '', motive: '', detail: '' };
+  session.state = "MENU";
+  session.support = { rut: "", motive: "", detail: "" };
 }
 
-module.exports = { getSession, resetSupport };
+function resetSession(session) {
+  session.state = "MENU";
+  session.support = { rut: "", motive: "", detail: "" };
+  session.isNew = false;
+}
+
+module.exports = { getSession, resetSession, resetSupport };
