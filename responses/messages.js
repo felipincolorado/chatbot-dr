@@ -3,14 +3,13 @@
 const AGENDA_URL = 'https://drsebastianaravena.cl/agendar/';
 const HUMAN_WA_BASE = 'https://wa.me/56926125661';
 
-const menuBase = [
-  'Responde con un número:',
-  '1️⃣ Licencia',
-  '2️⃣ Valores',
-  '3️⃣ Agendar',
-  '4️⃣ Soporte pacientes',
-  '0️⃣ Menú',
-].join('\n');
+const menuBase =
+  'Responde con un número:\n' +
+  '1️⃣ Licencia\n' +
+  '2️⃣ Valores\n' +
+  '3️⃣ Agendar\n' +
+  '4️⃣ Soporte pacientes\n' +
+  '0️⃣ Menú';
 
 function stripAccents(str) {
   try {
@@ -33,15 +32,16 @@ function normalizeRut(input) {
 }
 
 function buildSupportLink({ rut, motive, detail }) {
-  const safeDetail = String(detail || '').trim().slice(0, 220);
+  const safeDetail = String(detail || '').trim().slice(0, 260);
 
+  // Texto precargado (natural, sin “soy paciente”)
   const lines = [
     'Hola, mi situación es:',
     `RUT: ${rut}`,
     `Motivo: ${motive}`,
   ];
 
-  // Si no hay detalle, dejamos "Detalle:" para que lo completen al abrir WhatsApp.
+  // Si no hay detalle, igual dejamos el campo para que la persona complete
   if (safeDetail) lines.push(`Detalle: ${safeDetail}`);
   else lines.push('Detalle:');
 
@@ -66,27 +66,31 @@ module.exports = {
     'Si corresponde, el médico puede emitir hasta 14 días por teleconsulta (renovable si se necesita).\n\n' +
     '3 agendar · 0 menú',
 
+  // Valores: precio único (sin cobros extra) + ajuste Fonasa/Dipreca vs Isapre
   opcion2:
-    'Valores (precio único por atención completa):\n' +
     'Fonasa/Dipreca: $35.000\n' +
-    'Isapre: $45.000\n' +
-    'No hay cobros adicionales por licencia/receta/certificado (si corresponde).\n\n' +
+    'Isapre: $45.000\n\n' +
+    'Precio único por la atención completa.\n' +
+    'No hay cobros extra por licencia/receta/certificados (si corresponde).\n\n' +
     '3 agendar · 0 menú',
 
+  // Agendar: todo en la web + correo con enlace
   opcion3:
-    `Agenda y paga en la web:\n${AGENDA_URL}\n` +
-    'Al finalizar te llegará un correo con el enlace de acceso a la teleconsulta.\n\n' +
+    `Agenda y paga en el sitio web:\n${AGENDA_URL}\n\n` +
+    'Al finalizar te llegará un correo con tu enlace de acceso a la teleconsulta.\n\n' +
     '0 menú',
 
+  // Sobrecupo: suave + deriva a 4 si paciente
   sobrecupo:
     'La agenda disponible es la que aparece al agendar.\n' +
-    'Si ya eres paciente y es un caso especial, presiona 4 (Soporte pacientes).\n' +
-    'Para agendar: 3.\n\n' +
-    '0 menú',
+    'Si ya eres paciente y es un caso especial, presiona 4 (Soporte pacientes).\n\n' +
+    '3 agendar · 0 menú',
 
+  // Soporte: un solo mensaje de entrada (evita “al revés”)
   soporte_inicio:
     'Soporte pacientes (solo si ya te atendiste o tienes reserva).\n' +
-    'Envía tu RUT (sin puntos y con guion). Ej: 12345678-9',
+    'Para derivarte a WhatsApp soporte, envía tu RUT (sin puntos y con guion).\n' +
+    'Ej: 12345678-9',
 
   soporte_rut_invalido:
     'RUT inválido. Ejemplo: 12345678-9\n' +
@@ -99,11 +103,12 @@ module.exports = {
     '3 Problemas al agendar\n' +
     '4 Otro',
 
-  soporte_detalle:
+  soporte_detalle_otro:
     'Escribe el detalle en 1 frase (sin datos médicos).',
 
-  // Para maximizar que WhatsApp muestre la previsualización/botón, devolvemos SOLO el link.
-  soporte_fin: (link) => link,
+  // Mensaje previo antes de mandar el link (para que no parezca virus)
+  soporte_derivacion_prev:
+    'Listo. En 2 segundos te llegará el botón para “Iniciar chat” en WhatsApp soporte.',
 
   gracias: 'De nada. 0 menú',
 

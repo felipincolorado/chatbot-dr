@@ -1,5 +1,6 @@
 // index.js
 const express = require('express');
+const twilio = require('twilio');
 const { MessagingResponse } = require('twilio').twiml;
 
 const responses = require('./responses/messages');
@@ -7,14 +8,35 @@ const normalizeInput = require('./utils/normalizeInput');
 const { getSession, resetSupport } = require('./sessions/sessionManager');
 
 const app = express();
-app.use(express.urlencoded({ extended: false }));
+
+// Twilio manda x-www-form-urlencoded
+app.use(express.urlencoded({ extended: false, limit: '50kb' }));
+
+function canSendProactive() {
+  return Boolean(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN);
+}
+
+function sendDelayedWhatsAppMessage({ to, from, body, delayMs = 1500 }) {
+  if (!canSendProactive()) return false;
+
+  const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+
+  setTimeout(() => {
+    client.messages
+      .create({ to, from, body })
+      .catch((err) => console.error('❌ Error enviando mensaje diferido:', err.message || err));
+  }, delayMs);
+
+  return true;
+}
 
 app.post('/webhook', (req, res) => {
   const twiml = new MessagingResponse();
 
   try {
     const incomingMsg = (req.body.Body || '').trim();
-    const from = req.body.From;
+    const from = req.body.From; // usuario
+    const toNumber = req.body.To; // tu número Twilio (whatsapp:+...)
 
     // Si no hay texto, responde menú
     if (!incomingMsg || typeof incomingMsg !== 'string') {
@@ -76,17 +98,35 @@ app.post('/webhook', (req, res) => {
       // Solo pedimos detalle si elige "Otro"
       if (key === '4') {
         session.state = 'SUPPORT_DETAIL';
-        twiml.message(responses.soporte_detalle);
-      } else {
-        const link = responses.buildSupportLink({
-          rut: session.support.rut,
-          motive: session.support.motive,
-          detail: '',
-        });
-        twiml.message(responses.soporte_fin(link));
-        resetSupport(session);
+        twiml.message(responses.soporte_detalle_otro);
+        res.set('Content-Type', 'text/xml');
+        return res.status(200).send(twiml.toString());
       }
 
+      // Derivación automática a WhatsApp soporte (con pausa)
+      const link = responses.buildSupportLink({
+        rut: session.support.rut,
+        motive: session.support.motive,
+        detail: '',
+      });
+
+      // 1) Mensaje explicativo (visible y confiable)
+      twiml.message(responses.soporte_derivacion_prev);
+
+      // 2) Link solo (diferido ~1.5s) para que WhatsApp alcance a renderizar la tarjeta
+      const scheduled = sendDelayedWhatsAppMessage({
+        to: from,
+        from: toNumber,
+        body: link,
+        delayMs: 1500,
+      });
+
+      // Si no hay credenciales para envío diferido, manda el link en el mismo mensaje (fallback)
+      if (!scheduled) {
+        twiml.message(link);
+      }
+
+      resetSupport(session);
       res.set('Content-Type', 'text/xml');
       return res.status(200).send(twiml.toString());
     }
@@ -94,20 +134,33 @@ app.post('/webhook', (req, res) => {
     if (session.state === 'SUPPORT_DETAIL') {
       const detail = (incomingMsg || '').trim();
       if (detail.length < 3) {
-        twiml.message(responses.soporte_detalle);
+        twiml.message(responses.soporte_detalle_otro);
         res.set('Content-Type', 'text/xml');
         return res.status(200).send(twiml.toString());
       }
 
       session.support.detail = detail;
+
       const link = responses.buildSupportLink({
         rut: session.support.rut,
         motive: session.support.motive,
         detail: session.support.detail,
       });
-      twiml.message(responses.soporte_fin(link));
-      resetSupport(session);
 
+      twiml.message(responses.soporte_derivacion_prev);
+
+      const scheduled = sendDelayedWhatsAppMessage({
+        to: from,
+        from: toNumber,
+        body: link,
+        delayMs: 1500,
+      });
+
+      if (!scheduled) {
+        twiml.message(link);
+      }
+
+      resetSupport(session);
       res.set('Content-Type', 'text/xml');
       return res.status(200).send(twiml.toString());
     }
@@ -143,6 +196,7 @@ app.post('/webhook', (req, res) => {
     return res.status(200).send(twiml.toString());
   } catch (err) {
     // Si algo falla, no dejar en silencio a WhatsApp/Twilio
+    console.error('❌ Error en webhook:', err);
     twiml.message('Hubo un error. Responde 0 para ver el menú.');
     res.set('Content-Type', 'text/xml');
     return res.status(200).send(twiml.toString());
@@ -151,5 +205,5 @@ app.post('/webhook', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`✅ Miriam Bot v15 corriendo en puerto ${PORT}`);
+  console.log(`✅ Miriam Bot v16 corriendo en puerto ${PORT}`);
 });
