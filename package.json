@@ -1,13 +1,21 @@
 {
   "name": "bot-whatsapp-aravena",
-  "version": "16.0.0",
-  "description": "Asistente virtual para WhatsApp del Dr. Aravena",
+  "version": "19.0.0",
+  "private": true,
+  "description": "Miriam: asistente virtual de agendamiento por WhatsApp (Twilio) del Dr. Sebastián Aravena",
   "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "test": "node --test"
   },
   "dependencies": {
-    "express": "^4.18.2",
+    "express": "^4.21.2",
     "twilio": "^5.0.4"
+  },
+  "optionalDependencies": {
+    "@anthropic-ai/sdk": "^0.131.0"
   }
 }
