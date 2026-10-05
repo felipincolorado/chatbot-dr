@@ -80,7 +80,7 @@ function detectIntent(text) {
 
   if (hasPrefix(t, ['licencia', 'reposo', 'compin'])) return 'licencias';
 
-  if (hasPrefix(t, ['receta', 'certificad', 'orden', 'informe'])) return 'documentos';
+  if (hasPrefix(t, ['receta', 'certificad', 'orden', 'informe', 'examen', 'examenes'])) return 'documentos';
 
   if (
     hasPrefix(t, ['valor', 'precio', 'costo', 'cuest', 'cobr', 'fonasa', 'isapre', 'dipreca', 'arancel', 'tarifa']) ||

@@ -22,7 +22,7 @@ const MOTIVE_ITEMS = [
   { id: '1', item: 'Problema con reserva', description: 'Pago, horario o confirmación' },
   { id: '2', item: 'Reprogramar o reembolso', description: 'Cambiar la hora o solicitar devolución' },
   { id: '3', item: 'Licencia rechazada', description: 'Rechazada u observada por Isapre o COMPIN' },
-  { id: '4', item: 'Después de la consulta', description: 'Receta, certificado u otro documento' },
+  { id: '4', item: 'Después de la consulta', description: 'Receta, orden de exámenes u otro' },
   { id: '5', item: 'Otro motivo', description: 'Cuéntanos en una frase' },
 ];
 
@@ -126,7 +126,7 @@ function buildMessages(config) {
       body:
         `Fonasa / Dipreca: ${PRICES.fonasa}\n` +
         `Isapre: ${PRICES.isapre}\n\n` +
-        'Precio único por la atención completa. Si el médico lo indica, la receta, el certificado o la licencia están incluidos, sin costo adicional.',
+        'Precio único por la atención completa. Si el médico lo indica, la receta, la orden de exámenes, el certificado o la licencia están incluidos, sin costo adicional.',
       nav: NAV.principal,
     },
 
@@ -137,7 +137,7 @@ function buildMessages(config) {
         '2. *Confirmación:* te llega un correo con el enlace de la videollamada.\n' +
         '3. *Consulta:* a la hora agendada entras desde tu celular o computador.\n' +
         '4. *Evaluación:* el médico revisa tu caso contigo.\n' +
-        '5. *Documentos:* si corresponde, recibes receta, certificado o licencia médica.' +
+        '5. *Documentos:* si corresponde, recibes receta, orden de exámenes, certificado o licencia médica.' +
         (credential ? `\n\n${credential}` : ''),
       nav: NAV.principal,
     },
@@ -199,7 +199,7 @@ function buildMessages(config) {
     },
 
     documentos: {
-      title: 'Recetas, certificados y licencias',
+      title: 'Recetas, exámenes, certificados y licencias',
       body: 'Se emiten solo si el médico determina, durante la evaluación, que corresponden. Están incluidos en el valor de la consulta, sin costo adicional.',
       nav: NAV.principal,
     },
