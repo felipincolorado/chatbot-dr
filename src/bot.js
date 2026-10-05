@@ -20,7 +20,7 @@ function createBot(config, { ai = null } = {}) {
     documentos: () => msg.documentos,
     sobrecupo: () => msg.sobrecupo,
     urgencia: () => msg.urgencia,
-    crisis: () => msg.crisis,
+    crisis: () => msg.urgencia,
     clinico: () => msg.clinico,
     humano: () => msg.humano,
     gracias: () => msg.gracias,

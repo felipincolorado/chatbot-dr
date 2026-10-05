@@ -213,6 +213,6 @@ Detalles completos en `README.md`.
 - Variables configuradas en Railway (**solo nombres**).
 - Resultado de la prueba por WhatsApp (cada opción) y de los logs de Twilio (HTTP 200, sin duplicados).
 - Estado de los anuncios Click-to-WhatsApp (solo revisado).
-- Pendientes: RNPI (`DOCTOR_RNPI`, `DOCTOR_RNPI_URL`), confirmar líneas *4141 y 131 en el mensaje de crisis,
+- Pendientes: RNPI (`DOCTOR_RNPI`, `DOCTOR_RNPI_URL`),
   perfil de WhatsApp Business si no se aprobó.
 - Costos nuevos activados: **ninguno** (si se activó algo, explicar qué y por qué).

@@ -113,12 +113,6 @@ function buildMessages(config) {
       'Si es una urgencia médica, acude al servicio de urgencia más cercano o llama al SAMU 131.\n\n' +
       'Esta consulta online no atiende urgencias. Para una hora programada responde 1, o 0 para el menú.',
 
-    crisis:
-      'Lamento que estés pasando por esto. Si estás en riesgo o piensas en hacerte daño, por favor busca ayuda ahora:\n' +
-      '• Línea de prevención del suicidio: *4141 (gratis, 24 h)\n' +
-      '• SAMU: 131\n' +
-      '• O acude al servicio de urgencia más cercano.\n\n' +
-      'No estás solo/a. Este chat es solo de agendamiento y no puede brindar atención de crisis.',
 
     clinico:
       'Por este chat no puedo evaluar síntomas, diagnosticar ni indicar medicamentos, y te pido no enviar antecedentes de salud aquí.\n\n' +

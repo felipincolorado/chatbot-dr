@@ -36,8 +36,8 @@ dentro de la misma respuesta; ya no se usa `setTimeout` ni envío diferido).
 ```
 
 Además reconoce palabras clave (precio, fonasa, reservar, receta, reprogramar,
-“hablar con una persona”, etc.). Mensajes de crisis o urgencia reciben líneas de
-ayuda (SAMU 131, *4141); mensajes con síntomas/medicamentos reciben un aviso de que
+“hablar con una persona”, etc.). Mensajes de crisis o urgencia reciben el aviso breve
+de urgencia (SAMU 131); mensajes con síntomas/medicamentos reciben un aviso de que
 el chat no evalúa ni diagnostica. Lo no comprendido muestra en qué puede ayudar y
 el menú.
 
@@ -135,4 +135,3 @@ de tamaño, funcionamiento sin IA y con IA simulada.
 ## Pendiente / datos por confirmar
 
 - `DOCTOR_RNPI` y `DOCTOR_RNPI_URL`: no se dispone del dato; no se muestra hasta que el titular lo entregue.
-- Línea *4141 de prevención del suicidio y SAMU 131: verificar que se desea mostrarlas en el mensaje de crisis.

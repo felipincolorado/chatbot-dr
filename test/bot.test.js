@@ -129,9 +129,10 @@ test('contenido clínico: no diagnostica y pide no enviar antecedentes', async (
   assert.match(r.text, /no puedo evaluar síntomas, diagnosticar ni indicar medicamentos/);
 });
 
-test('crisis entrega líneas de ayuda', async () => {
+test('crisis recibe el mensaje breve de urgencia', async () => {
   const r = await createBot(config).handleMessage(newSession(), 'no quiero vivir');
   assert.match(r.text, /131/);
+  assert.doesNotMatch(r.text, /4141/);
 });
 
 test('RNPI se omite si no está configurado y se muestra si lo está', async () => {
