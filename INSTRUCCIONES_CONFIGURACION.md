@@ -88,8 +88,8 @@ Versión **19.0.0**. Archivos principales:
 | `test/` | 36 pruebas automatizadas |
 
 Cambios clave:
-- Menú nuevo: 1 Agendar · 2 Valores · 3 Cómo funciona · 4 Licencias · 5 Ya soy paciente · 0 Menú.
-- **Ya no se pide RUT.** El enlace a soporte (`wa.me/56926125661`) solo lleva el motivo general.
+- Menú nuevo: 1 Agendar · 2 Valores · 3 Cómo funciona · 4 Licencias · 5 Ya agendé / soy paciente · 0 Menú.
+- **Ya no se pide RUT.** El enlace a soporte (`wa.me/56926125661`) solo lleva nombre y motivo, y solo se entrega en la opción 5.
 - Se eliminó el envío diferido con `setTimeout`: todo va en la misma respuesta TwiML.
 - **En producción (`NODE_ENV=production`) se valida la firma de Twilio:**
   - sin `TWILIO_AUTH_TOKEN` → el webhook responde **500**;
@@ -171,8 +171,8 @@ Detalles completos en `README.md`.
 ## 6. Prueba real por WhatsApp
 
 1. ⛔ Pedir al usuario que escriba **"hola"** al número del bot desde su teléfono.
-2. Probar en orden: `1`, `2`, `3`, `4`, `5` → `1` (debe llegar enlace a wa.me/56926125661 con
-   "Motivo: Problema con mi reserva"), `0`, y un texto cualquiera ("asdf") para ver el mensaje de ayuda.
+2. Probar en orden: `1`, `2`, `3`, `4`, `5` → nombre y apellido → `1` (debe llegar enlace a wa.me/56926125661 con
+   "Hola, soy <nombre>. Motivo: Problema con mi reserva"), `0`, y un texto cualquiera ("asdf") para ver el mensaje de ayuda.
 3. Tocar el enlace de soporte y confirmar que abre el chat con el número humano y el texto precargado
    **sin RUT ni datos personales**.
 4. Twilio → Monitor → Logs → Messaging: cada mensaje entrante con respuesta saliente, **sin duplicados**.

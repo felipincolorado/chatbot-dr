@@ -68,7 +68,11 @@ function detectIntent(text) {
   if (has(t, ['menu', 'volver', 'inicio', 'opciones'])) return 'menu';
 
   if (
-    has(t, ['ya soy paciente', 'soy paciente', 'ya me atendi', 'no me llego', 'no llego', 'no recibi']) ||
+    has(t, [
+      'ya soy paciente', 'soy paciente', 'ya me atendi', 'me atendi', 'me atiendo con', 'ya me atiendo',
+      'ya agende', 'ya reserve', 'ya pague', 'ya tengo hora', 'ya tengo una hora', 'ya tengo reserva',
+      'no me llego', 'no llego', 'no recibi',
+    ]) ||
     hasPrefix(t, ['reembols', 'reprogram', 'devoluci', 'cancel', 'soporte', 'problema'])
   ) {
     return 'paciente';

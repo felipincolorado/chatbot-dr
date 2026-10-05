@@ -157,10 +157,11 @@ test('flujo completo por webhook: soporte entrega enlace sin datos sensibles en 
       body: form(msg(body, { From: 'whatsapp:+56933333333' })),
     }).then((r) => r.text());
     await post('hola');
-    assert.match(await post('5'), /motivo general/);
+    assert.match(await post('5'), /nombre y apellido/);
+    assert.match(await post('Ana Rojas'), /motivo/);
     const xml = await post('1');
     assert.match(xml, /https:\/\/wa\.me\/56926125661\?text=/);
-    assert.match(xml, /Problema con mi reserva/);
+    assert.match(xml, /Motivo%3A%20Problema%20con%20mi%20reserva/);
   } finally {
     await srv.close();
   }

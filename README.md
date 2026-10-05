@@ -12,7 +12,7 @@ index.js                 Punto de entrada (npm start): carga config y levanta Ex
 src/config.js            Lee variables de entorno (sin secretos en código)
 src/app.js               Express: GET /health, POST /webhook, firma Twilio, límites, logs anónimos
 src/bot.js               Lógica conversacional pura (estado MENU / SUPPORT_MOTIVE)
-src/messages.js          Textos, precios y enlace de derivación (solo motivo general)
+src/messages.js          Textos, precios y enlace de derivación (nombre + motivo)
 src/normalizeInput.js    Detección determinista de intenciones (seguridad primero)
 src/sessionManager.js    Sesiones en memoria, 30 min de inactividad, tope de 5.000
 src/ai.js                Capa OPCIONAL de IA (AI_ENABLED=false por defecto)
@@ -31,7 +31,7 @@ dentro de la misma respuesta; ya no se usa `setTimeout` ni envío diferido).
 2. Valores y previsión          → Fonasa/Dipreca $35.000 · Isapre $45.000 · precio único
 3. Cómo funciona la consulta    → agendar/pagar → confirmación → videollamada → evaluación → documentos si corresponden
 4. Información sobre licencias  → no se venden ni garantizan; las determina el médico
-5. Ya soy paciente              → motivo general (1-4) → enlace wa.me con solo ese motivo
+5. Ya agendé / soy paciente    → nombre y apellido → motivo (1-5; "Otro" pide una frase) → enlace wa.me con mensaje armado
 0. Volver al menú
 ```
 
@@ -127,7 +127,7 @@ de tamaño, funcionamiento sin IA y con IA simulada.
 ## Seguridad
 
 - No se registran cuerpos de mensajes, números de teléfono, RUT ni tokens (los logs usan un hash corto del remitente).
-- No se incluyen RUT ni datos clínicos en URLs; el enlace de soporte solo lleva el motivo general.
+- No se incluyen RUT ni datos clínicos en URLs; el enlace de soporte solo lleva nombre, motivo y (si eligió "Otro") una frase sin RUT/correos/teléfonos. Solo quien elige la opción 5 recibe el enlace al número humano.
 - Límite de 20 KB por solicitud, 1.000 caracteres por mensaje procesado, 30 mensajes/min por remitente.
 - Se ignoran mensajes del propio número del bot, callbacks de estado y reintentos duplicados (anti-bucles).
 - Historial de Git revisado (2026-10-04): sin credenciales.

@@ -4,15 +4,18 @@
 
 const SUPPORT_MOTIVES = {
   1: 'Problema con mi reserva',
-  2: 'Reprogramación o reembolso',
-  3: 'Problema posterior a la consulta',
-  4: 'Otro tema',
+  2: 'Reprogramar o reembolso',
+  3: 'Licencia rechazada u observada',
+  4: 'Problema posterior a la consulta',
+  5: 'Otro',
 };
+const OTHER_MOTIVE = '5';
 
-function buildHumanLink(config, motive) {
-  // Solo se precarga el motivo general. Nunca RUT, nombre ni datos clínicos.
-  const text = `Hola, escribo desde el asistente virtual. Motivo: ${motive}.`;
-  return `https://wa.me/${config.humanWhatsappNumber}?text=${encodeURIComponent(text)}`;
+function buildHumanLink(config, { name, motive, detail } = {}) {
+  // Solo nombre, motivo y una frase opcional. Nunca RUT ni datos clínicos.
+  const lines = [name ? `Hola, soy ${name}.` : 'Hola.', `Motivo: ${motive}`];
+  if (detail) lines.push(`Detalle: ${detail}`);
+  return `https://wa.me/${config.humanWhatsappNumber}?text=${encodeURIComponent(lines.join('\n'))}`;
 }
 
 function credentialLine(config) {
@@ -27,7 +30,7 @@ function buildMessages(config) {
     '2. Valores y previsión\n' +
     '3. Cómo funciona la consulta\n' +
     '4. Información sobre licencias\n' +
-    '5. Ya soy paciente\n' +
+    '5. Ya agendé / soy paciente\n' +
     '0. Volver al menú';
 
   const intro =
@@ -80,20 +83,25 @@ function buildMessages(config) {
       'Si buscas una evaluación, responde 1 para agendar o 0 para el menú.',
 
     pacienteInicio:
-      'Te derivo con nuestro equipo de soporte. ¿Cuál es el motivo general?\n\n' +
-      '1. Problema con reserva\n' +
-      '2. Reprogramación o reembolso\n' +
-      '3. Problema posterior a la consulta\n' +
-      '4. Otro\n' +
-      '0. Volver al menú\n\n' +
-      'No envíes RUT ni datos de salud por este chat.',
-
-    pacienteDerivacion: (motive) =>
-      `Listo. Toca este enlace para escribir al equipo de soporte (${motive}):\n` +
-      `${buildHumanLink(config, motive)}\n\n` +
-      'Es el WhatsApp oficial de soporte del ' + config.doctorFullName + '. ' +
-      'El equipo te pedirá los datos necesarios para identificarte.\n\n' +
+      'Soporte para pacientes (solo si ya agendaste o te atendiste con el doctor).\n\n' +
+      'Para derivarte con el equipo, escribe tu *nombre y apellido*.\n\n' +
       '0 para volver al menú.',
+
+    pacienteNombreInvalido:
+      'Escribe solo tu nombre y apellido, sin números. Ej: María González\n\n' +
+      '0 para volver al menú.',
+
+    pacienteMotivo: (name) =>
+      `Gracias, ${name.split(' ')[0]}. ¿Cuál es el motivo?\n\n` +
+      Object.entries(SUPPORT_MOTIVES).map(([n, m]) => `${n}. ${m}`).join('\n') +
+      '\n0. Volver al menú',
+
+    pacienteDetalle: 'Escribe el motivo en una frase corta (sin RUT ni datos de salud).',
+
+    pacienteDerivacion: (data) =>
+      `Listo, ${data.name.split(' ')[0]}. Toca este enlace para escribir a nuestro equipo. El mensaje ya va escrito, solo envíalo:\n` +
+      `${buildHumanLink(config, data)}\n\n` +
+      `Es el WhatsApp oficial del ${config.doctorFullName}.`,
 
     // Sin enlace: el WhatsApp humano es solo para pacientes (opción 5).
     humano:
@@ -136,4 +144,4 @@ function buildMessages(config) {
   };
 }
 
-module.exports = { buildMessages, buildHumanLink, SUPPORT_MOTIVES };
+module.exports = { buildMessages, buildHumanLink, SUPPORT_MOTIVES, OTHER_MOTIVE };

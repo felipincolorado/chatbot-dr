@@ -18,7 +18,7 @@ test('bienvenida identifica asistente virtual y muestra el menú', async () => {
   const r = await bot.handleMessage(newSession(), 'Hola');
   assert.match(r.text, /Miriam, la asistente virtual de agendamiento del Dr\. Sebastián Aravena/);
   assert.match(r.text, /No realizo diagnósticos ni indicaciones médicas/);
-  for (const opt of ['1. Agendar consulta online', '2. Valores y previsión', '3. Cómo funciona la consulta', '4. Información sobre licencias', '5. Ya soy paciente', '0. Volver al menú']) {
+  for (const opt of ['1. Agendar consulta online', '2. Valores y previsión', '3. Cómo funciona la consulta', '4. Información sobre licencias', '5. Ya agendé / soy paciente', '0. Volver al menú']) {
     assert.ok(r.text.includes(opt), opt);
   }
 });
@@ -71,47 +71,80 @@ test('mensaje no comprendido muestra ayuda y menú, no solo "No entendí"', asyn
   assert.doesNotMatch(r.text, /^No entendí/);
 });
 
-test('flujo "Ya soy paciente" sin RUT ni datos clínicos', async () => {
+function linkText(text) {
+  const link = text.match(/https:\/\/wa\.me\/\S+/)[0];
+  assert.ok(link.startsWith('https://wa.me/56926125661?text='));
+  return decodeURIComponent(link.split('?text=')[1]);
+}
+
+test('flujo "Ya agendé": pide nombre, luego motivo, y genera enlace con mensaje armado', async () => {
   const bot = createBot(config);
   const s = oldSession();
   const r1 = await bot.handleMessage(s, '5');
-  assert.equal(s.state, 'SUPPORT_MOTIVE');
+  assert.equal(s.state, 'SUPPORT_NAME');
+  assert.match(r1.text, /nombre y apellido/);
   assert.doesNotMatch(r1.text, /envía tu rut|ingresa tu rut/i);
-  for (const opt of ['Problema con reserva', 'Reprogramación o reembolso', 'Problema posterior a la consulta', 'Otro']) {
-    assert.ok(r1.text.includes(opt), opt);
+
+  // Un RUT o texto con números no se acepta como nombre.
+  const r2 = await bot.handleMessage(s, '12.345.678-9');
+  assert.equal(r2.intent, 'nombre_invalido');
+  assert.equal(s.state, 'SUPPORT_NAME');
+
+  const r3 = await bot.handleMessage(s, 'maría GONZÁLEZ');
+  assert.equal(s.state, 'SUPPORT_MOTIVE');
+  assert.match(r3.text, /Gracias, María/);
+  for (const opt of ['Problema con mi reserva', 'Reprogramar o reembolso', 'Licencia rechazada', 'Problema posterior a la consulta', 'Otro']) {
+    assert.ok(r3.text.includes(opt), opt);
   }
 
-  // Texto libre durante el flujo no se acepta ni se reenvía.
-  const r2 = await bot.handleMessage(s, 'mi rut es 12.345.678-9');
+  // Texto libre en el paso de motivo no se acepta ni se reenvía.
+  const r4 = await bot.handleMessage(s, 'mi rut es 12.345.678-9');
+  assert.equal(r4.intent, 'motivo_invalido');
   assert.equal(s.state, 'SUPPORT_MOTIVE');
-  assert.equal(r2.intent, 'motivo_invalido');
 
-  const r3 = await bot.handleMessage(s, '2');
-  assert.equal(r3.intent, 'derivacion');
+  const r5 = await bot.handleMessage(s, '2');
+  assert.equal(r5.intent, 'derivacion');
   assert.equal(s.state, 'MENU');
-  const link = r3.text.match(/https:\/\/wa\.me\/\S+/)[0];
-  assert.ok(link.startsWith('https://wa.me/56926125661?text='));
-  const decoded = decodeURIComponent(link.split('?text=')[1]);
-  assert.equal(decoded, 'Hola, escribo desde el asistente virtual. Motivo: Reprogramación o reembolso.');
-  assert.doesNotMatch(decoded, /\d{6,}|rut/i);
+  assert.equal(linkText(r5.text), 'Hola, soy María González.\nMotivo: Reprogramar o reembolso');
 });
 
-test('cada motivo genera un enlace solo con el motivo general', async () => {
+test('motivo "Otro" pide una frase y la limpia de RUT, correos y teléfonos', async () => {
+  const bot = createBot(config);
+  const s = oldSession();
+  await bot.handleMessage(s, '5');
+  await bot.handleMessage(s, 'Juan Pérez');
+  const r = await bot.handleMessage(s, '5');
+  assert.equal(s.state, 'SUPPORT_DETAIL');
+  assert.match(r.text, /frase corta/);
+  const done = await bot.handleMessage(s, 'necesito boleta, rut 12.345.678-9 correo a@b.cl fono +56 9 1234 5678');
+  assert.equal(done.intent, 'derivacion');
+  const decoded = linkText(done.text);
+  assert.match(decoded, /^Hola, soy Juan Pérez\.\nMotivo: Otro\nDetalle: necesito boleta/);
+  assert.doesNotMatch(decoded, /\d{6,}|@|12\.345/);
+});
+
+test('cada motivo numerado genera el enlace con nombre y motivo', async () => {
   for (const n of ['1', '2', '3', '4']) {
     const bot = createBot(config);
     const s = oldSession();
     await bot.handleMessage(s, '5');
+    await bot.handleMessage(s, 'Ana Rojas');
     const r = await bot.handleMessage(s, n);
-    const link = r.text.match(/https:\/\/wa\.me\/\S+/)[0];
-    const decoded = decodeURIComponent(link.split('?text=')[1]);
-    assert.match(decoded, /^Hola, escribo desde el asistente virtual\. Motivo: [^\d]+\.$/);
+    assert.match(linkText(r.text), /^Hola, soy Ana Rojas\.\nMotivo: [^\d]+$/);
   }
 });
 
-test('buildHumanLink usa HUMAN_WHATSAPP_NUMBER y no incluye datos sensibles', () => {
+test('frases como "ya agendé" entran al flujo de pacientes', async () => {
+  const s = oldSession();
+  const r = await createBot(config).handleMessage(s, 'ya agendé y tengo una duda');
+  assert.equal(r.intent, 'paciente');
+  assert.equal(s.state, 'SUPPORT_NAME');
+});
+
+test('buildHumanLink usa HUMAN_WHATSAPP_NUMBER', () => {
   const cfg = testConfig({ HUMAN_WHATSAPP_NUMBER: '+56 9 2612 5661' });
-  const link = buildHumanLink(cfg, 'Otro tema');
-  assert.equal(link, 'https://wa.me/56926125661?text=' + encodeURIComponent('Hola, escribo desde el asistente virtual. Motivo: Otro tema.'));
+  const link = buildHumanLink(cfg, { name: 'Ana Rojas', motive: 'Otro', detail: 'boleta' });
+  assert.equal(link, 'https://wa.me/56926125661?text=' + encodeURIComponent('Hola, soy Ana Rojas.\nMotivo: Otro\nDetalle: boleta'));
 });
 
 test('0 vuelve al menú desde el flujo de soporte', async () => {

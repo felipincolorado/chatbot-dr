@@ -2,10 +2,30 @@
 // Lógica conversacional pura: recibe la sesión y el texto, devuelve el texto de
 // respuesta. No conoce Express ni Twilio, por eso se prueba fácilmente.
 
-const { buildMessages, SUPPORT_MOTIVES } = require('./messages');
+const { buildMessages, SUPPORT_MOTIVES, OTHER_MOTIVE } = require('./messages');
 const { detectIntent, selectedNumber } = require('./normalizeInput');
 
 const MAX_INPUT_CHARS = 1000;
+
+// Nombre y apellido: solo letras, 2 a 5 palabras. Sin números (evita RUT/teléfonos).
+function cleanName(text) {
+  const t = String(text || '').replace(/\s+/g, ' ').trim();
+  if (t.length < 3 || t.length > 60 || !/^[\p{L}' -]+$/u.test(t)) return '';
+  const words = t.split(' ').filter((w) => /\p{L}/u.test(w));
+  if (words.length < 2 || words.length > 5) return '';
+  return words.map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+}
+
+// Detalle de "Otro": una frase corta; se quitan RUT, correos y números largos.
+function cleanDetail(text) {
+  return String(text || '')
+    .replace(/\b\d{1,2}\.?\d{3}\.?\d{3}\s*-?\s*[\dkK]\b/g, '')
+    .replace(/[\w.+-]+@[\w-]+\.[\w.-]+/g, '')
+    .replace(/\+?\d[\d\s-]{5,}\d/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 160);
+}
 
 function createBot(config, { ai = null } = {}) {
   const msg = buildMessages(config);
@@ -26,10 +46,48 @@ function createBot(config, { ai = null } = {}) {
     gracias: () => msg.gracias,
     despedida: () => msg.despedida,
     paciente: (session) => {
-      session.state = 'SUPPORT_MOTIVE';
+      session.state = 'SUPPORT_NAME';
+      session.support = {};
       return msg.pacienteInicio;
     },
   };
+
+  function finishSupport(session) {
+    const { name, motive, detail } = session.support;
+    session.state = 'MENU';
+    session.support = undefined;
+    return { intent: 'derivacion', text: msg.pacienteDerivacion({ name, motive, detail }) };
+  }
+
+  function handleSupportStep(session, text) {
+    if (session.state === 'SUPPORT_NAME') {
+      const name = cleanName(text);
+      if (!name) return { intent: 'nombre_invalido', text: msg.pacienteNombreInvalido };
+      session.support = { name };
+      session.state = 'SUPPORT_MOTIVE';
+      return { intent: 'paciente_nombre', text: msg.pacienteMotivo(name) };
+    }
+
+    if (session.state === 'SUPPORT_MOTIVE') {
+      const n = selectedNumber(text);
+      if (!n || !SUPPORT_MOTIVES[n]) {
+        // No se procesa texto libre aquí (puede traer datos sensibles).
+        return { intent: 'motivo_invalido', text: msg.pacienteMotivo(session.support.name) };
+      }
+      session.support.motive = SUPPORT_MOTIVES[n];
+      if (n === OTHER_MOTIVE) {
+        session.state = 'SUPPORT_DETAIL';
+        return { intent: 'paciente_motivo', text: msg.pacienteDetalle };
+      }
+      return finishSupport(session);
+    }
+
+    // SUPPORT_DETAIL
+    const detail = cleanDetail(text);
+    if (detail.length < 3) return { intent: 'detalle_invalido', text: msg.pacienteDetalle };
+    session.support.detail = detail;
+    return finishSupport(session);
+  }
 
   // Intenciones que se responden tal cual aunque sea el primer mensaje.
   const NO_INTRO = new Set(['saludo', 'crisis', 'urgencia']);
@@ -51,20 +109,15 @@ function createBot(config, { ai = null } = {}) {
       return { intent: 'sin_texto', text: hasMedia && !isFirstMessage ? msg.sinTexto : msg.bienvenida };
     }
 
-    // Flujo "Ya soy paciente": solo se pregunta el motivo general.
-    if (session.state === 'SUPPORT_MOTIVE') {
-      const n = selectedNumber(text);
-      if (n && SUPPORT_MOTIVES[n]) {
+    // Flujo "Ya agendé / soy paciente": nombre -> motivo -> (detalle si es "Otro") -> enlace.
+    if (session.state && session.state.startsWith('SUPPORT_')) {
+      const exit = detectIntent(text);
+      if (exit === 'menu' || exit === 'crisis' || exit === 'urgencia') {
         session.state = 'MENU';
-        return { intent: 'derivacion', text: msg.pacienteDerivacion(SUPPORT_MOTIVES[n]) };
+        session.support = undefined;
+        return { intent: exit, text: reply(exit, session, false) };
       }
-      const intent = detectIntent(text);
-      if (!intent || intent === 'clinico') {
-        // Seguimos esperando el motivo; no se procesa texto libre (puede traer datos sensibles).
-        return { intent: 'motivo_invalido', text: msg.pacienteInicio };
-      }
-      session.state = 'MENU';
-      return { intent, text: reply(intent, session, false) };
+      return handleSupportStep(session, text);
     }
 
     const intent = detectIntent(text);
