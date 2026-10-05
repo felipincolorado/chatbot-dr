@@ -3,7 +3,7 @@
 Bot de WhatsApp (Twilio) del Dr. Sebastián Aravena. Prioriza el agendamiento en el
 sitio oficial, responde dudas administrativas y deriva a pacientes al WhatsApp
 humano de soporte. **No diagnostica, no indica medicamentos, no promete licencias
-y no solicita RUT ni antecedentes clínicos.**
+y no solicita antecedentes clínicos.** Solo pide nombre y RUT a quien ya es paciente, para que el equipo ubique su ficha.
 
 ## Arquitectura
 
@@ -31,7 +31,7 @@ dentro de la misma respuesta; ya no se usa `setTimeout` ni envío diferido).
 2. Valores y previsión          → Fonasa/Dipreca $35.000 · Isapre $45.000 · precio único
 3. Cómo funciona la consulta    → agendar/pagar → confirmación → videollamada → evaluación → documentos si corresponden
 4. Información sobre licencias  → no se venden ni garantizan; las determina el médico
-5. Ya agendé / soy paciente    → nombre y apellido → motivo (1-5; "Otro" pide una frase) → enlace wa.me con mensaje armado
+5. Ya agendé / soy paciente    → nombre + RUT en un mensaje (valida dígito verificador) → motivo (1-5; "Otro" pide una frase) → enlace wa.me con mensaje armado
 0. Volver al menú
 ```
 
@@ -91,7 +91,7 @@ curl -X POST localhost:3000/webhook -d "From=whatsapp:+56900000000&To=whatsapp:+
 ```
 
 Cobertura: normalización de saludos e intenciones, menú y respuestas, flujo de
-soporte sin RUT, enlace sin datos sensibles, healthcheck, webhook con firma
+soporte con nombre + RUT validado, enlace sin datos sensibles, healthcheck, webhook con firma
 válida/inválida/ausente (incluido proxy de Railway), duplicados y bucles, límite
 de tamaño, funcionamiento sin IA y con IA simulada.
 
@@ -127,7 +127,7 @@ de tamaño, funcionamiento sin IA y con IA simulada.
 ## Seguridad
 
 - No se registran cuerpos de mensajes, números de teléfono, RUT ni tokens (los logs usan un hash corto del remitente).
-- No se incluyen RUT ni datos clínicos en URLs; el enlace de soporte solo lleva nombre, motivo y (si eligió "Otro") una frase sin RUT/correos/teléfonos. Solo quien elige la opción 5 recibe el enlace al número humano.
+- No se incluyen datos clínicos en URLs; el enlace de soporte lleva nombre, RUT (decisión del titular, para ubicar la ficha), motivo y (si eligió "Otro") una frase sin RUT/correos/teléfonos. Solo quien elige la opción 5 recibe el enlace al número humano.
 - Límite de 20 KB por solicitud, 1.000 caracteres por mensaje procesado, 30 mensajes/min por remitente.
 - Se ignoran mensajes del propio número del bot, callbacks de estado y reintentos duplicados (anti-bucles).
 - Historial de Git revisado (2026-10-04): sin credenciales.

@@ -11,9 +11,11 @@ const SUPPORT_MOTIVES = {
 };
 const OTHER_MOTIVE = '5';
 
-function buildHumanLink(config, { name, motive, detail } = {}) {
-  // Solo nombre, motivo y una frase opcional. Nunca RUT ni datos clínicos.
-  const lines = [name ? `Hola, soy ${name}.` : 'Hola.', `Motivo: ${motive}`];
+function buildHumanLink(config, { name, rut, motive, detail } = {}) {
+  // Nombre y RUT (para ubicar la ficha), motivo y una frase opcional. Nunca datos clínicos.
+  const lines = [name ? `Hola, soy ${name}.` : 'Hola.'];
+  if (rut) lines.push(`RUT: ${rut}`);
+  lines.push(`Motivo: ${motive}`);
   if (detail) lines.push(`Detalle: ${detail}`);
   return `https://wa.me/${config.humanWhatsappNumber}?text=${encodeURIComponent(lines.join('\n'))}`;
 }
@@ -84,12 +86,17 @@ function buildMessages(config) {
 
     pacienteInicio:
       'Soporte para pacientes (solo si ya agendaste o te atendiste con el doctor).\n\n' +
-      'Para derivarte con el equipo, escribe tu *nombre y apellido*.\n\n' +
+      'Para derivarte con el equipo, escribe en un mensaje tu *nombre, apellido y RUT*.\n' +
+      'Ej: María González 12.345.678-5\n\n' +
       '0 para volver al menú.',
 
-    pacienteNombreInvalido:
-      'Escribe solo tu nombre y apellido, sin números. Ej: María González\n\n' +
-      '0 para volver al menú.',
+    pacienteIdInvalido: (error) =>
+      ({
+        sin_rut: 'Me falta tu RUT.',
+        rut_invalido: 'El RUT no es válido, revisa el dígito verificador.',
+        sin_nombre: 'Me falta tu nombre y apellido.',
+      }[error] || 'No pude leer tus datos.') +
+      '\nEscríbelos así: María González 12.345.678-5\n\n0 para volver al menú.',
 
     pacienteMotivo: (name) =>
       `Gracias, ${name.split(' ')[0]}. ¿Cuál es el motivo?\n\n` +

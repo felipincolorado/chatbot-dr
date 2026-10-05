@@ -6,4 +6,4 @@ Chatbot de WhatsApp (Twilio + Express, desplegado en Railway) del Dr. Sebastián
   `INSTRUCCIONES_CONFIGURACION.md` paso a paso y respeta sus reglas (⛔ = detenerse y pedir al usuario).
 - Arquitectura, variables y recuperación: `README.md`.
 - Pruebas: `npm test` (deben pasar todas antes de fusionar o desplegar).
-- Nunca pedir RUT ni datos clínicos en el bot, ni ponerlos en URLs. Nunca mostrar ni commitear secretos.
+- Nunca pedir datos clínicos en el bot ni ponerlos en URLs. El RUT solo se pide en el flujo de soporte (opción 5), por decisión del titular. Nunca mostrar ni commitear secretos.

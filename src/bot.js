@@ -7,6 +7,32 @@ const { detectIntent, selectedNumber } = require('./normalizeInput');
 
 const MAX_INPUT_CHARS = 1000;
 
+// RUT chileno con dígito verificador válido (módulo 11). Devuelve "12345678-9" o ''.
+const RUT_RE = /(\d{1,2})\.?(\d{3})\.?(\d{3})\s*-?\s*([\dkK])\b/;
+function validRut(body, dv) {
+  let sum = 0;
+  let mul = 2;
+  for (let i = body.length - 1; i >= 0; i -= 1) {
+    sum += Number(body[i]) * mul;
+    mul = mul === 7 ? 2 : mul + 1;
+  }
+  const r = 11 - (sum % 11);
+  const expected = r === 11 ? '0' : r === 10 ? 'K' : String(r);
+  return expected === dv.toUpperCase();
+}
+
+// Mensaje con nombre y RUT en cualquier orden ("María González 12.345.678-9").
+function parseIdentity(text) {
+  const t = String(text || '').replace(/\s+/g, ' ').trim();
+  const m = t.match(RUT_RE);
+  if (!m) return { error: 'sin_rut' };
+  const body = `${m[1]}${m[2]}${m[3]}`;
+  if (!validRut(body, m[4])) return { error: 'rut_invalido' };
+  const name = cleanName(t.replace(m[0], ' ').replace(/\b(rut|run)\b|[,:;]/gi, ' '));
+  if (!name) return { error: 'sin_nombre' };
+  return { name, rut: `${body}-${m[4].toUpperCase()}` };
+}
+
 // Nombre y apellido: solo letras, 2 a 5 palabras. Sin números (evita RUT/teléfonos).
 function cleanName(text) {
   const t = String(text || '').replace(/\s+/g, ' ').trim();
@@ -46,26 +72,26 @@ function createBot(config, { ai = null } = {}) {
     gracias: () => msg.gracias,
     despedida: () => msg.despedida,
     paciente: (session) => {
-      session.state = 'SUPPORT_NAME';
+      session.state = 'SUPPORT_ID';
       session.support = {};
       return msg.pacienteInicio;
     },
   };
 
   function finishSupport(session) {
-    const { name, motive, detail } = session.support;
+    const data = session.support;
     session.state = 'MENU';
     session.support = undefined;
-    return { intent: 'derivacion', text: msg.pacienteDerivacion({ name, motive, detail }) };
+    return { intent: 'derivacion', text: msg.pacienteDerivacion(data) };
   }
 
   function handleSupportStep(session, text) {
-    if (session.state === 'SUPPORT_NAME') {
-      const name = cleanName(text);
-      if (!name) return { intent: 'nombre_invalido', text: msg.pacienteNombreInvalido };
-      session.support = { name };
+    if (session.state === 'SUPPORT_ID') {
+      const id = parseIdentity(text);
+      if (id.error) return { intent: `id_${id.error}`, text: msg.pacienteIdInvalido(id.error) };
+      session.support = { name: id.name, rut: id.rut };
       session.state = 'SUPPORT_MOTIVE';
-      return { intent: 'paciente_nombre', text: msg.pacienteMotivo(name) };
+      return { intent: 'paciente_id', text: msg.pacienteMotivo(id.name) };
     }
 
     if (session.state === 'SUPPORT_MOTIVE') {
@@ -144,4 +170,4 @@ function createBot(config, { ai = null } = {}) {
   return { handleMessage, messages: msg };
 }
 
-module.exports = { createBot, MAX_INPUT_CHARS };
+module.exports = { createBot, parseIdentity, MAX_INPUT_CHARS };
