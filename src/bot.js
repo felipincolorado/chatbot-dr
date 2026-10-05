@@ -121,7 +121,7 @@ function createBot(config, { ai = null } = {}) {
   function reply(intent, session, isFirstMessage) {
     const text = RESPONSES[intent](session);
     if (isFirstMessage && !NO_INTRO.has(intent)) {
-      return `${msg.intro} No realizo diagnósticos ni indicaciones médicas.\n\n${text}`;
+      return `${msg.intro}\n\n${text}`;
     }
     return text;
   }

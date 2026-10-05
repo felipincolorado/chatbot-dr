@@ -1,6 +1,8 @@
 // src/messages.js
 // Textos del asistente. Se construyen a partir de la configuración para no
 // repetir URLs ni datos del médico en distintos lugares.
+// Estilo: título en negrita, pasos numerados, una acción clara al final y sin
+// emojis (tono de consulta médica, no de delivery).
 
 const SUPPORT_MOTIVES = {
   1: 'Problema con mi reserva',
@@ -24,138 +26,152 @@ function buildHumanLink(config, { name, rut, motive, detail } = {}) {
 
 function credentialLine(config) {
   if (!config.doctorRnpi) return '';
-  const base = `${config.doctorFullName} está inscrito en el Registro Nacional de Prestadores Individuales de Salud (RNPI) con el N° ${config.doctorRnpi}.`;
+  const base = `El ${config.doctorFullName} está inscrito en el Registro Nacional de Prestadores Individuales de la Superintendencia de Salud (RNPI) con el N° ${config.doctorRnpi}.`;
   return config.doctorRnpiUrl ? `${base}\nPuedes verificarlo aquí: ${config.doctorRnpiUrl}` : base;
 }
 
+// Pie común: acciones disponibles en una sola línea.
+function footer(...options) {
+  return options.map(([n, label]) => `*${n}* ${label}`).join('  ·  ');
+}
+
 function buildMessages(config) {
-  const menu =
-    '1. Agendar hora\n' +
+  const precios = `Fonasa/Dipreca ${PRICES.fonasa}  ·  Isapre ${PRICES.isapre}`;
+
+  const opciones =
+    '1. Agendar una hora\n' +
     '2. Valores y previsión\n' +
     '3. Cómo funciona la consulta\n' +
     '4. Licencias médicas\n' +
-    '5. Ya agendé / soy paciente\n' +
-    '0. Volver al menú';
-
-  // Sin nombre de persona: en salud, decir de entrada que es un asistente
-  // automático evita que crean hablar con una secretaria.
-  const intro = `Hola 👋 Soy el asistente virtual del ${config.doctorFullName} (respuestas automáticas).`;
+    '5. Ya agendé / soy paciente';
+  const menu = `${opciones}\n0. Volver al menú`;
 
   const credential = credentialLine(config);
-  const withCredential = (text) => (credential ? `${text}\n\n${credential}` : text);
 
-  // Lo que más pregunta quien llega desde un anuncio, ya en el primer mensaje.
-  const resumen =
-    '🩺 Consulta médica online por videollamada\n' +
-    `💳 Fonasa/Dipreca ${PRICES.fonasa} · Isapre ${PRICES.isapre}` +
-    (config.doctorRnpi ? `\n✅ Registro Superintendencia de Salud N° ${config.doctorRnpi}` : '');
+  // Quién atiende, respaldo y precio primero; el aviso de asistente automático
+  // al final, breve y visible.
+  const encabezado =
+    `Consulta médica online del *${config.doctorFullName}*` +
+    (config.doctorTagline ? `\n${config.doctorTagline}` : '') +
+    (config.doctorRnpi ? `\nReg. Superintendencia de Salud N° ${config.doctorRnpi}` : '');
+  const aviso = 'Asistente automático de agendamiento. No entrega diagnósticos ni indicaciones médicas.';
+  const intro = `Hola, te damos la bienvenida a la consulta online del ${config.doctorFullName}. ${aviso}`;
 
   return {
     menu,
     intro,
 
     bienvenida:
-      `${intro}\n\n${resumen}\n\n` +
-      `Responde con un número:\n${menu}\n\n` +
-      'No entrego diagnósticos ni indicaciones médicas.',
+      `Hola, te damos la bienvenida.\n\n${encabezado}\n\n` +
+      `Atención por videollamada\n${precios}\n\n` +
+      `¿En qué te podemos ayudar? Responde con un número:\n\n${opciones}\n\n` +
+      `_${aviso}_`,
 
-    menuConHeader: `¿En qué te ayudo?\n\n${menu}`,
+    menuConHeader: `¿En qué te podemos ayudar?\n\n${menu}`,
 
-    agendar: withCredential(
-      'La consulta es online, por videollamada.\n\n' +
-        'Para reservar:\n' +
-        '• Elige el horario que te acomode y paga en el sitio oficial.\n' +
-        '• Te llegará la confirmación y el enlace de la videollamada a tu correo.\n\n' +
-        `Reserva aquí: ${config.agendaUrl}\n\n` +
-        '¿Tienes alguna pregunta antes de reservar? Escríbela aquí, o responde 2 (valores), 3 (cómo funciona) o 0 (menú).'
-    ),
+    agendar:
+      '*Agendar una hora*\n\n' +
+      `1. Entra a ${config.agendaUrl}\n` +
+      '2. Elige el día y horario que te acomode.\n' +
+      `3. Paga online: ${precios}.\n` +
+      '4. Recibirás en tu correo la confirmación y el enlace de la videollamada.\n\n' +
+      '¿Tienes alguna duda antes de reservar? Escríbela aquí.\n\n' +
+      footer(['2', 'valores'], ['3', 'cómo funciona'], ['0', 'menú']),
 
     valores:
-      'Valores de la consulta:\n' +
-      `• Fonasa / Dipreca: ${PRICES.fonasa}\n` +
-      `• Isapre: ${PRICES.isapre}\n\n` +
-      'Es un precio único por la atención completa. Recetas, certificados o licencias se emiten solo si el médico determina que corresponden.\n\n' +
-      '¿Revisamos horarios? Responde 1 para agendar o 0 para el menú.',
+      '*Valores de la consulta*\n\n' +
+      `Fonasa / Dipreca: ${PRICES.fonasa}\n` +
+      `Isapre: ${PRICES.isapre}\n\n` +
+      'Precio único por la atención completa. Si el médico lo indica, la receta, el certificado o la licencia están incluidos, sin costo adicional.\n\n' +
+      footer(['1', 'agendar'], ['0', 'menú']),
 
-    comoFunciona: withCredential(
-      'Así funciona la consulta:\n' +
-        '1) Agendas y pagas en el sitio oficial.\n' +
-        '2) Recibes la confirmación por correo.\n' +
-        '3) A la hora reservada ingresas a la videollamada con el enlace.\n' +
-        '4) El médico realiza la evaluación.\n' +
-        '5) Si clínicamente corresponde, se emiten los documentos necesarios.\n\n' +
-        'Responde 1 para agendar o 0 para el menú.'
-    ),
+    comoFunciona:
+      '*Cómo funciona la consulta*\n\n' +
+      `1. *Reserva:* eliges horario y pagas en ${config.agendaUrl}\n` +
+      '2. *Confirmación:* te llega un correo con el enlace de la videollamada.\n' +
+      '3. *Consulta:* a la hora agendada entras desde tu celular o computador.\n' +
+      '4. *Evaluación:* el médico revisa tu caso contigo.\n' +
+      '5. *Documentos:* si corresponde, recibes receta, certificado o licencia médica.\n\n' +
+      (credential ? `${credential}\n\n` : '') +
+      footer(['1', 'agendar'], ['0', 'menú']),
 
     licencias:
-      'Las licencias médicas no se venden ni se garantizan.\n\n' +
-      'Si corresponde una licencia, lo determina el médico durante la evaluación, según tu situación de salud.\n\n' +
-      'Si buscas una evaluación, responde 1 para agendar o 0 para el menú.',
+      '*Licencias médicas*\n\n' +
+      'La licencia médica está sujeta a evaluación: el médico determina en la consulta si corresponde y por cuántos días, según tu situación de salud. No se venden ni se garantizan.\n\n' +
+      'Si tu licencia es rechazada u observada por la Isapre o la COMPIN, puedes solicitar el informe médico para apelar, sin costo adicional.\n\n' +
+      footer(['1', 'agendar'], ['5', 'ya soy paciente'], ['0', 'menú']),
 
     pacienteInicio:
-      'Soporte para pacientes (solo si ya agendaste o te atendiste con el doctor).\n\n' +
-      'Para derivarte con el equipo, escribe en un mensaje tu *nombre, apellido y RUT*.\n' +
-      'Ej: María González 12.345.678-5\n\n' +
-      '0 para volver al menú.',
+      '*Atención a pacientes*\n\n' +
+      'Este canal es para quienes ya agendaron o se atendieron con el doctor.\n\n' +
+      'Para derivarte con el equipo, escribe en un solo mensaje tu *nombre, apellido y RUT*.\n' +
+      'Ejemplo: María González 12.345.678-5\n\n' +
+      footer(['0', 'menú']),
 
     pacienteIdInvalido: (error) =>
       ({
         sin_rut: 'Me falta tu RUT.',
-        rut_invalido: 'El RUT no es válido, revisa el dígito verificador.',
+        rut_invalido: 'El RUT no es válido. Revisa el dígito verificador.',
         sin_nombre: 'Me falta tu nombre y apellido.',
       }[error] || 'No pude leer tus datos.') +
-      '\nEscríbelos así: María González 12.345.678-5\n\n0 para volver al menú.',
+      '\nEscríbelos así: María González 12.345.678-5\n\n' +
+      footer(['0', 'menú']),
 
     pacienteMotivo: (name) =>
-      `Gracias, ${name.split(' ')[0]}. ¿Cuál es el motivo?\n\n` +
+      `Gracias, ${name.split(' ')[0]}. ¿Cuál es el motivo de tu consulta?\n\n` +
       Object.entries(SUPPORT_MOTIVES).map(([n, m]) => `${n}. ${m}`).join('\n') +
       '\n0. Volver al menú',
 
-    pacienteDetalle: 'Escribe el motivo en una frase corta (sin RUT ni datos de salud).',
+    pacienteDetalle: 'Cuéntanos el motivo en una frase corta (sin RUT ni datos de salud).',
 
     pacienteDerivacion: (data) =>
-      `Listo, ${data.name.split(' ')[0]}. Toca este enlace para escribir a nuestro equipo. El mensaje ya va escrito, solo envíalo:\n` +
+      `Listo, ${data.name.split(' ')[0]}.\n\n` +
+      'Toca el enlace para escribir al equipo del doctor. El mensaje ya va redactado con tus datos; solo debes enviarlo:\n' +
       `${buildHumanLink(config, data)}\n\n` +
-      `Es el WhatsApp oficial del ${config.doctorFullName}.`,
+      `WhatsApp oficial de atención a pacientes del ${config.doctorFullName}.`,
 
     // Sin enlace: el WhatsApp humano es solo para pacientes (opción 5).
     humano:
-      'El contacto con nuestro equipo es para pacientes que ya agendaron o se atendieron.\n\n' +
-      '• Si ya agendaste, responde 5.\n' +
-      '• Si aún no, aquí resuelvo tus dudas: 1 agendar · 2 valores · 3 cómo funciona · 4 licencias.',
+      '*Contacto con el equipo*\n\n' +
+      'El WhatsApp del equipo atiende a pacientes que ya agendaron o se atendieron.\n\n' +
+      '• Si ya agendaste, responde *5*.\n' +
+      '• Si aún no, resolvemos tus dudas aquí:\n' +
+      footer(['1', 'agendar'], ['2', 'valores'], ['3', 'cómo funciona'], ['4', 'licencias']),
 
     documentos:
-      'Recetas, certificados y licencias se emiten solo si el médico determina, durante la evaluación, que corresponden. ' +
-      'No tienen un costo adicional al valor de la consulta.\n\n' +
-      'Responde 1 para agendar o 0 para el menú.',
+      '*Recetas, certificados y licencias*\n\n' +
+      'Se emiten solo si el médico determina, durante la evaluación, que corresponden. Están incluidos en el valor de la consulta, sin costo adicional.\n\n' +
+      footer(['1', 'agendar'], ['0', 'menú']),
 
     sobrecupo:
-      `Los horarios disponibles son los que aparecen en el sitio de agendamiento: ${config.agendaUrl}\n\n` +
-      'Si ya eres paciente y tienes un caso especial, responde 5 para hablar con soporte. 0 para el menú.',
+      '*Disponibilidad*\n\n' +
+      `Los horarios disponibles son los que aparecen en ${config.agendaUrl}\n\n` +
+      'Si ya eres paciente y tienes un caso especial, responde *5* para contactar al equipo.\n\n' +
+      footer(['1', 'agendar'], ['0', 'menú']),
 
     urgencia:
       'Si es una urgencia médica, acude al servicio de urgencia más cercano o llama al SAMU 131.\n\n' +
-      'Esta consulta online no atiende urgencias. Para una hora programada responde 1, o 0 para el menú.',
-
+      'Esta consulta online no atiende urgencias.\n\n' +
+      footer(['1', 'agendar una hora programada'], ['0', 'menú']),
 
     clinico:
-      'Por este chat no puedo evaluar síntomas, diagnosticar ni indicar medicamentos, y te pido no enviar antecedentes de salud aquí.\n\n' +
-      'El médico podrá revisarlo contigo en la consulta. Responde 1 para agendar, o 0 para el menú. ' +
-      'Si es una urgencia, acude a urgencias o llama al 131.',
+      'Por este chat no podemos evaluar síntomas, diagnosticar ni indicar medicamentos. Te pedimos no enviar antecedentes de salud por aquí.\n\n' +
+      'El médico lo revisará contigo en la consulta. Si es una urgencia, acude a urgencias o llama al 131.\n\n' +
+      footer(['1', 'agendar'], ['0', 'menú']),
 
-    gracias: 'Con gusto. Si necesitas algo más, responde 0 para ver el menú o 1 para agendar.',
+    gracias: `Con gusto. Si necesitas algo más, aquí estamos.\n\n${footer(['1', 'agendar'], ['0', 'menú'])}`,
 
-    despedida: '¡Que estés bien! Cuando quieras, escribe 0 para ver el menú o 1 para agendar.',
+    despedida: `Que estés muy bien. Cuando quieras, escríbenos.\n\n${footer(['1', 'agendar'], ['0', 'menú'])}`,
 
     noEntendido:
-      'Puedo ayudarte con la agenda, los valores, cómo funciona la consulta y soporte para pacientes.\n\n' +
-      `Elige una opción:\n${menu}`,
+      'No logramos entender tu mensaje. Podemos ayudarte con la agenda, los valores, cómo funciona la consulta, licencias y atención a pacientes.\n\n' +
+      `Responde con un número:\n${menu}`,
 
     sinTexto:
-      'Por ahora solo puedo leer mensajes de texto.\n\n' +
-      `Elige una opción:\n${menu}`,
+      'Por ahora solo podemos leer mensajes de texto.\n\n' +
+      `Responde con un número:\n${menu}`,
 
-    error: 'Tuve un problema técnico. Responde 0 para ver el menú.',
+    error: `Tuvimos un problema técnico. Inténtalo de nuevo en un momento.\n\n${footer(['0', 'menú'])}`,
   };
 }
 

@@ -13,26 +13,29 @@ function oldSession() {
   return { isNew: false, state: 'MENU' };
 }
 
-test('bienvenida identifica asistente virtual y muestra el menú', async () => {
+test('bienvenida: médico, respaldo y precio primero; aviso de asistente automático; menú', async () => {
   const bot = createBot(config);
   const r = await bot.handleMessage(newSession(), 'Hola');
-  assert.match(r.text, /Soy el asistente virtual del Dr\. Sebastián Aravena \(respuestas automáticas\)/);
-  assert.match(r.text, /No entrego diagnósticos ni indicaciones médicas/);
+  assert.match(r.text, /Consulta médica online del \*Dr\. Sebastián Aravena\*/);
+  assert.match(r.text, /Médico, Universidad de Concepción/);
+  assert.match(r.text, /Asistente automático de agendamiento\. No entrega diagnósticos ni indicaciones médicas\./);
   // Precio y modalidad ya en el primer mensaje (quien llega por un anuncio pregunta eso primero).
   assert.match(r.text, /videollamada/);
-  assert.match(r.text, /Fonasa\/Dipreca \$35\.000 · Isapre \$45\.000/);
-  for (const opt of ['1. Agendar hora', '2. Valores y previsión', '3. Cómo funciona la consulta', '4. Licencias médicas', '5. Ya agendé / soy paciente', '0. Volver al menú']) {
+  assert.match(r.text, /Fonasa\/Dipreca \$35\.000  ·  Isapre \$45\.000/);
+  for (const opt of ['1. Agendar una hora', '2. Valores y previsión', '3. Cómo funciona la consulta', '4. Licencias médicas', '5. Ya agendé / soy paciente']) {
     assert.ok(r.text.includes(opt), opt);
   }
+  assert.doesNotMatch(r.text, /[\u{1F300}-\u{1FAFF}]/u, 'sin emojis');
 });
 
 test('opción 1: agendar', async () => {
   const r = await createBot(config).handleMessage(oldSession(), '1');
+  assert.match(r.text, /^\*Agendar una hora\*/);
   assert.match(r.text, /videollamada/);
-  assert.match(r.text, /paga en el sitio oficial/);
+  assert.match(r.text, /Paga online/);
   assert.match(r.text, /correo/);
   assert.ok(r.text.includes('https://drsebastianaravena.cl/agendar/'));
-  assert.match(r.text, /pregunta antes de reservar/);
+  assert.match(r.text, /duda antes de reservar/);
 });
 
 test('opción 2: valores', async () => {
@@ -40,37 +43,38 @@ test('opción 2: valores', async () => {
   assert.match(r.text, /Fonasa \/ Dipreca: \$35\.000/);
   assert.match(r.text, /Isapre: \$45\.000/);
   assert.match(r.text, /precio único/i);
-  assert.match(r.text, /solo si el médico determina/);
-  assert.match(r.text, /Revisamos horarios/);
+  assert.match(r.text, /Si el médico lo indica/);
+  assert.match(r.text, /\*1\* agendar/);
 });
 
 test('opción 3: cómo funciona', async () => {
   const r = await createBot(config).handleMessage(oldSession(), '3');
-  assert.match(r.text, /Agendas y pagas/);
-  assert.match(r.text, /confirmación/);
+  assert.match(r.text, /\*Reserva:\*/);
+  assert.match(r.text, /\*Confirmación:\*/);
   assert.match(r.text, /videollamada/);
-  assert.match(r.text, /evaluación/);
-  assert.match(r.text, /clínicamente corresponde/);
+  assert.match(r.text, /\*Evaluación:\*/);
+  assert.match(r.text, /si corresponde/);
 });
 
-test('opción 4: licencias sin promesas ni plazos', async () => {
+test('opción 4: licencias sujetas a evaluación, sin plazos, con informe para apelar', async () => {
   const r = await createBot(config).handleMessage(oldSession(), '4');
-  assert.match(r.text, /no se venden ni se garantizan/);
-  assert.match(r.text, /durante la evaluación/);
+  assert.match(r.text, /está sujeta a evaluación/);
+  assert.match(r.text, /No se venden ni se garantizan/);
+  assert.match(r.text, /informe médico para apelar, sin costo adicional/);
   assert.doesNotMatch(r.text, /\d+\s*d[ií]as/);
 });
 
 test('primer mensaje con intención directa agrega presentación', async () => {
   const r = await createBot(config).handleMessage(newSession(), 'cuánto cuesta?');
-  assert.match(r.text, /asistente virtual/);
+  assert.match(r.text, /Asistente automático/);
   assert.match(r.text, /\$35\.000/);
 });
 
 test('mensaje no comprendido muestra ayuda y menú, no solo "No entendí"', async () => {
   const r = await createBot(config).handleMessage(oldSession(), 'xyz qwerty');
   assert.equal(r.intent, 'no_entendido');
-  assert.match(r.text, /agenda, los valores, cómo funciona la consulta y soporte/);
-  assert.ok(r.text.includes('1. Agendar hora'));
+  assert.match(r.text, /la agenda, los valores, cómo funciona la consulta, licencias y atención a pacientes/);
+  assert.ok(r.text.includes('1. Agendar una hora'));
   assert.doesNotMatch(r.text, /^No entendí/);
 });
 
@@ -165,13 +169,13 @@ test('0 vuelve al menú desde el flujo de soporte', async () => {
   await bot.handleMessage(s, '5');
   const r = await bot.handleMessage(s, '0');
   assert.equal(s.state, 'MENU');
-  assert.ok(r.text.includes('1. Agendar hora'));
+  assert.ok(r.text.includes('1. Agendar una hora'));
 });
 
 test('contenido clínico: no diagnostica y pide no enviar antecedentes', async () => {
   const r = await createBot(config).handleMessage(oldSession(), 'tengo ansiedad, qué medicamento tomo?');
   assert.equal(r.intent, 'clinico');
-  assert.match(r.text, /no puedo evaluar síntomas, diagnosticar ni indicar medicamentos/);
+  assert.match(r.text, /no podemos evaluar síntomas, diagnosticar ni indicar medicamentos/);
 });
 
 test('crisis recibe el mensaje breve de urgencia', async () => {
@@ -198,12 +202,12 @@ test('pedir una persona no entrega el enlace humano sin pasar por "ya soy pacien
   const r = await createBot(config).handleMessage(oldSession(), 'quiero hablar con una persona');
   assert.equal(r.intent, 'humano');
   assert.doesNotMatch(r.text, /wa\.me/);
-  assert.match(r.text, /responde 5/);
+  assert.match(r.text, /responde *5*/);
 });
 
 test('bienvenida muestra el registro de la Superintendencia solo si está configurado', async () => {
   const sin = await createBot(config).handleMessage(newSession(), 'hola');
   assert.doesNotMatch(sin.text, /Superintendencia/);
   const con = await createBot(testConfig({ DOCTOR_RNPI: '763509' })).handleMessage(newSession(), 'hola');
-  assert.match(con.text, /Registro Superintendencia de Salud N° 763509/);
+  assert.match(con.text, /Reg. Superintendencia de Salud N° 763509/);
 });

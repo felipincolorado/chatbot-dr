@@ -7,6 +7,7 @@ const DEFAULTS = {
   AGENDA_URL: 'https://drsebastianaravena.cl/agendar/',
   HUMAN_WHATSAPP_NUMBER: '56926125661',
   DOCTOR_FULL_NAME: 'Dr. Sebastián Aravena',
+  DOCTOR_TAGLINE: 'Médico, Universidad de Concepción',
 };
 
 function str(env, key) {
@@ -46,6 +47,8 @@ function loadConfig(env = process.env) {
     agendaUrl: httpsUrl(str(env, 'AGENDA_URL')) || DEFAULTS.AGENDA_URL,
     humanWhatsappNumber: humanNumber,
     doctorFullName: str(env, 'DOCTOR_FULL_NAME') || DEFAULTS.DOCTOR_FULL_NAME,
+    // Línea breve bajo el nombre (formación). DOCTOR_TAGLINE=- la oculta.
+    doctorTagline: str(env, 'DOCTOR_TAGLINE') === '-' ? '' : str(env, 'DOCTOR_TAGLINE') || DEFAULTS.DOCTOR_TAGLINE,
     // RNPI: solo se muestra si está configurado. Nunca se inventa.
     doctorRnpi: str(env, 'DOCTOR_RNPI'),
     doctorRnpiUrl: httpsUrl(str(env, 'DOCTOR_RNPI_URL')),
