@@ -10,3 +10,6 @@ coverage/
 
 # Accesos directos de Windows
 *.lnk
+
+# Archivos temporales para subir por navegador
+.tmp-upload/
