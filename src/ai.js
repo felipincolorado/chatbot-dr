@@ -12,7 +12,7 @@ const APPROVED_TOPICS = {
   documentos: 'Recetas y certificados: solo si el médico determina que corresponden; sin costo adicional.',
   paciente: 'Pacientes que ya reservaron o se atendieron: problemas con reserva, reprogramación, reembolso, problemas posteriores. Se deriva a soporte humano.',
   sobrecupo: 'Disponibilidad de horarios y sobrecupos: solo los horarios publicados en el sitio de agendamiento.',
-  humano: 'La persona pide hablar con alguien del equipo o tiene una consulta administrativa que no está en los otros temas.',
+  humano: 'La persona pide hablar con alguien del equipo (se le explica que el contacto humano es solo para pacientes con hora).',
 };
 
 const SYSTEM_PROMPT =

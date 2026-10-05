@@ -95,10 +95,11 @@ function buildMessages(config) {
       'El equipo te pedirá los datos necesarios para identificarte.\n\n' +
       '0 para volver al menú.',
 
+    // Sin enlace: el WhatsApp humano es solo para pacientes (opción 5).
     humano:
-      'Puedes escribir directamente a nuestro equipo aquí:\n' +
-      `${buildHumanLink(config, 'Consulta general')}\n\n` +
-      'Si ya eres paciente, responde 5 para indicar el motivo. 0 para el menú.',
+      'El contacto con nuestro equipo es para pacientes que ya agendaron o se atendieron.\n\n' +
+      '• Si ya agendaste, responde 5.\n' +
+      '• Si aún no, aquí resuelvo tus dudas: 1 agendar · 2 valores · 3 cómo funciona · 4 licencias.',
 
     documentos:
       'Recetas, certificados y licencias se emiten solo si el médico determina, durante la evaluación, que corresponden. ' +

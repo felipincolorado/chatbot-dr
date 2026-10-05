@@ -148,3 +148,10 @@ test('AGENDA_URL configurable y sin http inseguro', () => {
   assert.equal(testConfig({ AGENDA_URL: 'http://inseguro.cl' }).agendaUrl, 'https://drsebastianaravena.cl/agendar/');
   assert.equal(testConfig({ AGENDA_URL: 'https://ejemplo.cl/x' }).agendaUrl, 'https://ejemplo.cl/x');
 });
+
+test('pedir una persona no entrega el enlace humano sin pasar por "ya soy paciente"', async () => {
+  const r = await createBot(config).handleMessage(oldSession(), 'quiero hablar con una persona');
+  assert.equal(r.intent, 'humano');
+  assert.doesNotMatch(r.text, /wa\.me/);
+  assert.match(r.text, /responde 5/);
+});
