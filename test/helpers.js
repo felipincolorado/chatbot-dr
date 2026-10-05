@@ -8,7 +8,7 @@ function testConfig(env = {}) {
 }
 
 async function startServer(config, opts = {}) {
-  const app = createApp(config, { logger: silentLogger, ...opts });
+  const app = createApp(config, { logger: silentLogger, interactive: null, ...opts });
   const server = await new Promise((resolve) => {
     const s = app.listen(0, '127.0.0.1', () => resolve(s));
   });

@@ -7,6 +7,15 @@ const { MessagingResponse } = twilio.twiml;
 const { createBot } = require('./bot');
 const { createSessionStore } = require('./sessionManager');
 const { createAi } = require('./ai');
+const { createInteractive } = require('./interactive');
+
+function defaultInteractive(config, logger) {
+  const { accountSid, authToken } = config.twilio;
+  if (!config.interactive || !config.interactive.enabled || !accountSid || !authToken) return null;
+  const ix = createInteractive(twilio(accountSid, authToken), { logger });
+  ix.init();
+  return ix;
+}
 
 // Identificador anónimo para logs: nunca se registra el número real.
 function anonId(value) {
@@ -65,7 +74,7 @@ function sendTwiml(res, twiml) {
   return res.status(200).send(twiml.toString());
 }
 
-function createApp(config, { ai, logger = console } = {}) {
+function createApp(config, { ai, interactive, logger = console } = {}) {
   const app = express();
   app.disable('x-powered-by');
   app.set('trust proxy', true);
@@ -75,6 +84,7 @@ function createApp(config, { ai, logger = console } = {}) {
   const bot = createBot(config, { ai: aiLayer });
   const recent = createRecentSet();
   const limiter = createRateLimiter();
+  const ix = interactive !== undefined ? interactive : defaultInteractive(config, logger);
 
   app.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', version: config.version });
@@ -131,10 +141,21 @@ function createApp(config, { ai, logger = console } = {}) {
 
         const session = sessions.get(from);
         const hasMedia = Number(body.NumMedia || 0) > 0;
-        const result = await bot.handleMessage(session, typeof body.Body === 'string' ? body.Body : '', { hasMedia });
+        // Al tocar un botón o una opción de lista llega su id (0-5); si no, el texto.
+        const payload = [body.ButtonPayload, body.ListId].find((v) => typeof v === 'string' && v.trim());
+        const input = payload || (typeof body.Body === 'string' ? body.Body : '');
+        const result = await bot.handleMessage(session, input, { hasMedia });
 
-        twiml.message(result.text);
-        logger.info(`[webhook] user=${user} intent=${result.intent} ms=${Date.now() - started}`);
+        let mode = 'texto';
+        if (ix && ix.isReady() && result.ui) {
+          try {
+            if (await ix.send({ from: to, to: from, ui: result.ui })) mode = 'botones';
+          } catch (err) {
+            logger.warn(`[webhook] botones no enviados, se usa texto (${err && err.status ? `HTTP ${err.status}` : 'error'})`);
+          }
+        }
+        if (mode === 'texto') twiml.message(result.text);
+        logger.info(`[webhook] user=${user} intent=${result.intent} modo=${mode} ms=${Date.now() - started}`);
         return sendTwiml(res, twiml);
       } catch (err) {
         logger.error(`[webhook] error user=${user}: ${err && err.message ? err.message : 'desconocido'}`);

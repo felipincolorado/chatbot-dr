@@ -1,9 +1,26 @@
 // src/bot.js
-// Lógica conversacional pura: recibe la sesión y el texto, devuelve el texto de
-// respuesta. No conoce Express ni Twilio, por eso se prueba fácilmente.
+// Lógica conversacional pura: recibe la sesión y el texto, devuelve la respuesta
+// como texto (`text`) y, si corresponde, como sección para botones (`ui`).
+// No conoce Express ni Twilio, por eso se prueba fácilmente.
 
-const { buildMessages, SUPPORT_MOTIVES, OTHER_MOTIVE } = require('./messages');
-const { detectIntent, selectedNumber } = require('./normalizeInput');
+const { buildMessages, render, SUPPORT_MOTIVES, OTHER_MOTIVE, MOTIVE_ITEMS } = require('./messages');
+const { detectIntent, selectedNumber, clean } = require('./normalizeInput');
+
+// Respuesta del bot: texto de respaldo + sección para mensajes interactivos.
+function out(intent, section) {
+  return { intent, text: render(section), ui: typeof section === 'string' ? null : section };
+}
+
+// Motivo elegido por número o tocando la opción de la lista (llega su título).
+function motiveFrom(text) {
+  const n = selectedNumber(text);
+  if (n && SUPPORT_MOTIVES[n]) return n;
+  const t = clean(text);
+  const hit = Object.entries(SUPPORT_MOTIVES).find(([, m]) => clean(m) === t);
+  if (hit) return hit[0];
+  const item = MOTIVE_ITEMS.find((m) => clean(m.item) === t);
+  return item ? item.id : null;
+}
 
 const MAX_INPUT_CHARS = 1000;
 
@@ -82,35 +99,35 @@ function createBot(config, { ai = null } = {}) {
     const data = session.support;
     session.state = 'MENU';
     session.support = undefined;
-    return { intent: 'derivacion', text: msg.pacienteDerivacion(data) };
+    return out('derivacion', msg.pacienteDerivacion(data));
   }
 
   function handleSupportStep(session, text) {
     if (session.state === 'SUPPORT_ID') {
       const id = parseIdentity(text);
-      if (id.error) return { intent: `id_${id.error}`, text: msg.pacienteIdInvalido(id.error) };
+      if (id.error) return out(`id_${id.error}`, msg.pacienteIdInvalido(id.error));
       session.support = { name: id.name, rut: id.rut };
       session.state = 'SUPPORT_MOTIVE';
-      return { intent: 'paciente_id', text: msg.pacienteMotivo(id.name) };
+      return out('paciente_id', msg.pacienteMotivo(id.name));
     }
 
     if (session.state === 'SUPPORT_MOTIVE') {
-      const n = selectedNumber(text);
-      if (!n || !SUPPORT_MOTIVES[n]) {
+      const n = motiveFrom(text);
+      if (!n) {
         // No se procesa texto libre aquí (puede traer datos sensibles).
-        return { intent: 'motivo_invalido', text: msg.pacienteMotivo(session.support.name) };
+        return out('motivo_invalido', msg.pacienteMotivo(session.support.name));
       }
       session.support.motive = SUPPORT_MOTIVES[n];
       if (n === OTHER_MOTIVE) {
         session.state = 'SUPPORT_DETAIL';
-        return { intent: 'paciente_motivo', text: msg.pacienteDetalle };
+        return out('paciente_motivo', msg.pacienteDetalle);
       }
       return finishSupport(session);
     }
 
     // SUPPORT_DETAIL
     const detail = cleanDetail(text);
-    if (detail.length < 3) return { intent: 'detalle_invalido', text: msg.pacienteDetalle };
+    if (detail.length < 3) return out('detalle_invalido', msg.pacienteDetalle);
     session.support.detail = detail;
     return finishSupport(session);
   }
@@ -119,11 +136,10 @@ function createBot(config, { ai = null } = {}) {
   const NO_INTRO = new Set(['saludo', 'crisis', 'urgencia']);
 
   function reply(intent, session, isFirstMessage) {
-    const text = RESPONSES[intent](session);
-    if (isFirstMessage && !NO_INTRO.has(intent)) {
-      return `${msg.intro}\n\n${text}`;
-    }
-    return text;
+    const section = RESPONSES[intent](session);
+    if (!isFirstMessage || NO_INTRO.has(intent)) return out(intent, section);
+    if (typeof section === 'string') return out(intent, `${msg.intro}\n\n${section}`);
+    return out(intent, { ...section, body: `${msg.intro}\n\n${section.body}` });
   }
 
   async function handleMessage(session, rawText, { hasMedia = false } = {}) {
@@ -132,7 +148,7 @@ function createBot(config, { ai = null } = {}) {
 
     if (!text) {
       session.state = 'MENU';
-      return { intent: 'sin_texto', text: hasMedia && !isFirstMessage ? msg.sinTexto : msg.bienvenida };
+      return out('sin_texto', hasMedia && !isFirstMessage ? msg.sinTexto : msg.bienvenida);
     }
 
     // Flujo "Ya agendé / soy paciente": nombre -> motivo -> (detalle si es "Otro") -> enlace.
@@ -141,7 +157,7 @@ function createBot(config, { ai = null } = {}) {
       if (exit === 'menu' || exit === 'crisis' || exit === 'urgencia') {
         session.state = 'MENU';
         session.support = undefined;
-        return { intent: exit, text: reply(exit, session, false) };
+        return reply(exit, session, false);
       }
       return handleSupportStep(session, text);
     }
@@ -149,22 +165,22 @@ function createBot(config, { ai = null } = {}) {
     const intent = detectIntent(text);
     if (intent) {
       session.state = 'MENU';
-      return { intent, text: reply(intent, session, isFirstMessage) };
+      return reply(intent, session, isFirstMessage);
     }
 
     if (isFirstMessage) {
-      return { intent: 'saludo', text: msg.bienvenida };
+      return out('saludo', msg.bienvenida);
     }
 
     // Capa opcional de IA: solo elige entre respuestas aprobadas.
     if (ai) {
       const topic = await ai.pickTopic(text);
       if (topic && RESPONSES[topic]) {
-        return { intent: `ai:${topic}`, text: reply(topic, session, false) };
+        return { ...reply(topic, session, false), intent: `ai:${topic}` };
       }
     }
 
-    return { intent: 'no_entendido', text: msg.noEntendido };
+    return out('no_entendido', msg.noEntendido);
   }
 
   return { handleMessage, messages: msg };

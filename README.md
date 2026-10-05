@@ -66,10 +66,29 @@ Ver `.env.example`. En Railway se configuran en el panel **Variables**, nunca en
 | `AGENDA_URL` | no | Por defecto `https://drsebastianaravena.cl/agendar/` (solo https) |
 | `HUMAN_WHATSAPP_NUMBER` | no | Por defecto `56926125661` (se aceptan espacios y `+`) |
 | `DOCTOR_FULL_NAME` | no | Por defecto `Dr. Sebastián Aravena` (se usa con “del …”) |
-| `DOCTOR_RNPI` | no | N° de RNPI. **Pendiente**: si está vacío, la línea de credencial no se muestra |
+| `DOCTOR_TAGLINE` | no | Línea bajo el nombre. Por defecto `Médico, Universidad de Concepción`; `-` la oculta |
+| `DOCTOR_RNPI` | no | N° de registro en la Superintendencia de Salud (configurado: 763509). Si está vacío, no se muestra |
+| `INTERACTIVE_MESSAGES` | no | `true` por defecto: menú en lista desplegable y botones (ver abajo). `false` vuelve a solo texto |
 | `DOCTOR_RNPI_URL` | no | Enlace de verificación (https). Solo si fue verificado |
 | `AI_ENABLED` | no | `false` por defecto |
 | `AI_PROVIDER` / `AI_API_KEY` / `AI_MODEL` / `AI_TIMEOUT_MS` | no | Solo si se activa IA |
+
+## Mensajes interactivos (lista y botones)
+
+Con `TWILIO_ACCOUNT_SID` y `TWILIO_AUTH_TOKEN` configurados, al arrancar el servicio
+crea (si no existen) plantillas de contenido en Twilio (`src/interactive.js`):
+
+- `drbot_menu_*`: menú principal como lista desplegable ("Ver opciones", 5 opciones).
+- `drbot_motives_*`: motivos de soporte como lista.
+- `drbot_nav_*`: respuestas con hasta 3 botones (Agendar hora, Menú principal, etc.).
+
+Son mensajes dentro de la sesión de 24 h que abre el paciente: no requieren aprobación
+de Meta ni cuestan más que un mensaje normal. El nombre incluye un hash del contenido,
+así que al cambiar textos de botones se crea una versión nueva automáticamente.
+La respuesta se envía por la API de mensajes y el webhook devuelve TwiML vacío; si
+el envío falla, se responde con el texto de siempre. Al tocar un botón llega su id
+(`ButtonPayload` / `ListId`, 0-5); escribir el número o el texto sigue funcionando.
+En los logs: `modo=botones` o `modo=texto`.
 
 ## Desarrollo y pruebas
 

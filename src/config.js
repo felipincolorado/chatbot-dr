@@ -65,6 +65,12 @@ function loadConfig(env = process.env) {
       publicBaseUrl: httpsUrl(str(env, 'PUBLIC_BASE_URL')).replace(/\/$/, ''),
     },
 
+    // Lista desplegable y botones de WhatsApp. Requiere TWILIO_ACCOUNT_SID y
+    // TWILIO_AUTH_TOKEN; INTERACTIVE_MESSAGES=false vuelve a solo texto.
+    interactive: {
+      enabled: bool(env, 'INTERACTIVE_MESSAGES', true),
+    },
+
     ai: {
       enabled: bool(env, 'AI_ENABLED', false),
       provider: str(env, 'AI_PROVIDER').toLowerCase() || 'anthropic',
