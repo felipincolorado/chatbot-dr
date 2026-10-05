@@ -139,7 +139,7 @@ test('webhook: si el envío con botones falla, responde con texto', async () => 
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
       body: form({ From: 'whatsapp:+56922222222', To: 'whatsapp:+56923774755', Body: 'hola', MessageSid: 'SMbtn2' }),
     }).then((r) => r.text());
-    assert.match(xml, /<Message>\*Hola, te damos la bienvenida\*/);
+    assert.match(xml, /<Message>\*Hola, te doy la bienvenida\*/);
   } finally {
     await srv.close();
   }

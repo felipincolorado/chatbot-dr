@@ -35,7 +35,7 @@ const MENU_OPTIONS = [
   { id: '2', label: 'Valores y previsión', item: 'Valores y previsión', description: `Fonasa/Dipreca ${PRICES.fonasa} · Isapre ${PRICES.isapre}` },
   { id: '3', label: 'Cómo funciona la consulta', item: 'Cómo funciona', description: 'Paso a paso de la atención por videollamada' },
   { id: '4', label: 'Licencias médicas', item: 'Licencias médicas', description: 'Sujetas a evaluación médica' },
-  { id: '5', label: 'Ya agendé / soy paciente', item: 'Ya agendé / paciente', description: 'Contactar al equipo del doctor' },
+  { id: '5', label: 'Ya agendé / soy paciente', item: 'Ya agendé / paciente', description: 'Escribir a atención a pacientes' },
 ];
 
 // Conjuntos de botones (máx. 3 por mensaje; título máx. 20 caracteres).
@@ -89,8 +89,8 @@ function buildMessages(config) {
     `Consulta médica online del *${config.doctorFullName}*` +
     (config.doctorTagline ? `\n${config.doctorTagline}` : '') +
     (config.doctorRnpi ? `\nReg. Superintendencia de Salud N° ${config.doctorRnpi}` : '');
-  const aviso = 'Asistente automático de agendamiento. No entrega diagnósticos ni indicaciones médicas.';
-  const intro = `Hola, te damos la bienvenida a la consulta online del ${config.doctorFullName}. ${aviso}`;
+  const aviso = 'Secretaria virtual del doctor (respuestas automáticas). No entrega diagnósticos ni indicaciones médicas.';
+  const intro = `Hola, te doy la bienvenida a la consulta online del ${config.doctorFullName}. ${aviso}`;
 
   // Secciones con lista desplegable del menú principal (kind: 'menu').
   const menuSection = (title, body) => ({ kind: 'menu', title, body, options: opciones });
@@ -102,13 +102,13 @@ function buildMessages(config) {
 
     bienvenida: {
       kind: 'menu',
-      title: 'Hola, te damos la bienvenida',
-      body: `${encabezado}\n\nAtención por videollamada\n${precios}\n\n¿En qué te podemos ayudar?`,
+      title: 'Hola, te doy la bienvenida',
+      body: `${encabezado}\n\nAtención por videollamada\n${precios}\n\n¿En qué te puedo ayudar?`,
       options: opciones,
       note: aviso,
     },
 
-    menuConHeader: menuSection('Menú principal', '¿En qué te podemos ayudar?'),
+    menuConHeader: menuSection('Menú principal', '¿En qué te puedo ayudar?'),
 
     agendar: {
       title: 'Agendar una hora',
@@ -155,7 +155,7 @@ function buildMessages(config) {
       title: 'Atención a pacientes',
       body:
         'Este canal es para quienes ya agendaron o se atendieron con el doctor.\n\n' +
-        'Para derivarte con el equipo, escribe en un solo mensaje tu *nombre, apellido y RUT*.\n' +
+        'Para derivarte a atención a pacientes, escribe en un solo mensaje tu *nombre, apellido y RUT*.\n' +
         'Ejemplo: María González 12.345.678-5',
       nav: NAV.menu,
     },
@@ -184,17 +184,17 @@ function buildMessages(config) {
     // Texto simple: el enlace se ve mejor sin botones.
     pacienteDerivacion: (data) =>
       `Listo, ${data.name.split(' ')[0]}.\n\n` +
-      'Toca el enlace para escribir al equipo del doctor. El mensaje ya va redactado con tus datos; solo debes enviarlo:\n' +
+      'Toca el enlace para escribir a atención a pacientes. El mensaje ya va redactado con tus datos; solo debes enviarlo:\n' +
       `${buildHumanLink(config, data)}\n\n` +
       `WhatsApp oficial de atención a pacientes del ${config.doctorFullName}.`,
 
     // Sin enlace: el WhatsApp humano es solo para pacientes (opción 5).
     humano: {
-      title: 'Contacto con el equipo',
+      title: 'Atención a pacientes',
       body:
-        'El WhatsApp del equipo atiende a pacientes que ya agendaron o se atendieron.\n\n' +
+        'El WhatsApp de atención a pacientes es para quienes ya agendaron o se atendieron con el doctor.\n\n' +
         '• Si ya agendaste, responde *5* o toca "Ya soy paciente".\n' +
-        '• Si aún no, resolvemos tus dudas aquí.',
+        '• Si aún no, resuelvo tus dudas aquí.',
       nav: NAV.licencias,
     },
 
@@ -208,7 +208,7 @@ function buildMessages(config) {
       title: 'Disponibilidad',
       body:
         `Los horarios disponibles son los que aparecen en ${config.agendaUrl}\n\n` +
-        'Si ya eres paciente y tienes un caso especial, responde *5* para contactar al equipo.',
+        'Si ya eres paciente y tienes un caso especial, responde *5* para escribir a atención a pacientes.',
       nav: NAV.licencias,
     },
 
@@ -223,23 +223,23 @@ function buildMessages(config) {
     clinico: {
       title: 'Consultas de salud',
       body:
-        'Por este chat no podemos evaluar síntomas, diagnosticar ni indicar medicamentos. Te pedimos no enviar antecedentes de salud por aquí.\n\n' +
+        'Por este chat no puedo evaluar síntomas, diagnosticar ni indicar medicamentos. Te pido no enviar antecedentes de salud por aquí.\n\n' +
         'El médico lo revisará contigo en la consulta. Si es una urgencia, acude a urgencias o llama al 131.',
       nav: NAV.principal,
     },
 
-    gracias: { title: 'Gracias por escribirnos', body: 'Si necesitas algo más, aquí estamos.', nav: NAV.principal },
+    gracias: { title: 'Gracias por escribir', body: 'Si necesitas algo más, aquí estoy.', nav: NAV.principal },
 
     despedida: { title: 'Hasta pronto', body: 'Que estés muy bien. Cuando quieras, escríbenos.', nav: NAV.principal },
 
     noEntendido: menuSection(
-      'No logramos entender tu mensaje',
-      'Podemos ayudarte con la agenda, los valores, cómo funciona la consulta, licencias y atención a pacientes.'
+      'No logré entender tu mensaje',
+      'Puedo ayudarte con la agenda, los valores, cómo funciona la consulta, licencias y atención a pacientes.'
     ),
 
-    sinTexto: menuSection('Solo mensajes de texto', 'Por ahora solo podemos leer mensajes de texto.'),
+    sinTexto: menuSection('Solo mensajes de texto', 'Por ahora solo puedo leer mensajes de texto.'),
 
-    error: 'Tuvimos un problema técnico. Inténtalo de nuevo en un momento, o escribe 0 para ver el menú.',
+    error: 'Tuve un problema técnico. Inténtalo de nuevo en un momento, o escribe 0 para ver el menú.',
   };
 }
 

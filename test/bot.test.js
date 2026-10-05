@@ -18,7 +18,7 @@ test('bienvenida: médico, respaldo y precio primero; aviso de asistente automá
   const r = await bot.handleMessage(newSession(), 'Hola');
   assert.match(r.text, /Consulta médica online del \*Dr\. Sebastián Aravena\*/);
   assert.match(r.text, /Médico, Universidad de Concepción/);
-  assert.match(r.text, /Asistente automático de agendamiento\. No entrega diagnósticos ni indicaciones médicas\./);
+  assert.match(r.text, /Secretaria virtual del doctor \(respuestas automáticas\)\. No entrega diagnósticos ni indicaciones médicas\./);
   // Precio y modalidad ya en el primer mensaje (quien llega por un anuncio pregunta eso primero).
   assert.match(r.text, /videollamada/);
   assert.match(r.text, /Fonasa\/Dipreca \$35\.000  ·  Isapre \$45\.000/);
@@ -67,7 +67,7 @@ test('opción 4: licencias sujetas a evaluación, sin plazos, con informe para a
 
 test('primer mensaje con intención directa agrega presentación', async () => {
   const r = await createBot(config).handleMessage(newSession(), 'cuánto cuesta?');
-  assert.match(r.text, /Asistente automático/);
+  assert.match(r.text, /Secretaria virtual del doctor/);
   assert.match(r.text, /\$35\.000/);
 });
 
@@ -176,7 +176,7 @@ test('0 vuelve al menú desde el flujo de soporte', async () => {
 test('contenido clínico: no diagnostica y pide no enviar antecedentes', async () => {
   const r = await createBot(config).handleMessage(oldSession(), 'tengo ansiedad, qué medicamento tomo?');
   assert.equal(r.intent, 'clinico');
-  assert.match(r.text, /no podemos evaluar síntomas, diagnosticar ni indicar medicamentos/);
+  assert.match(r.text, /no puedo evaluar síntomas, diagnosticar ni indicar medicamentos/);
 });
 
 test('crisis recibe el mensaje breve de urgencia', async () => {

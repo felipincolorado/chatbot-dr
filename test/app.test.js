@@ -36,7 +36,7 @@ test('webhook sin validación (desarrollo) responde TwiML', async () => {
     assert.equal(res.status, 200);
     assert.match(res.headers.get('content-type'), /text\/xml/);
     const xml = await res.text();
-    assert.match(xml, /<Response><Message>\*Hola, te damos la bienvenida\*/);
+    assert.match(xml, /<Response><Message>\*Hola, te doy la bienvenida\*/);
   } finally {
     await srv.close();
   }
