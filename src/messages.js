@@ -145,7 +145,8 @@ function buildMessages(config) {
     licencias: {
       title: 'Licencias médicas',
       body:
-        'La licencia médica está sujeta a evaluación: el médico determina en la consulta si corresponde y por cuántos días, según tu situación de salud. No se venden ni se garantizan.\n\n' +
+        'Por teleconsulta también se emiten licencias médicas electrónicas, igual que en una consulta presencial.\n\n' +
+        'La licencia está sujeta a evaluación: el médico determina en la consulta si corresponde y por cuántos días, según tu situación de salud. No se venden ni se garantizan.\n\n' +
         'Si tu licencia es rechazada u observada por la Isapre o la COMPIN, puedes solicitar el informe médico para apelar, sin costo adicional.',
       nav: NAV.licencias,
     },

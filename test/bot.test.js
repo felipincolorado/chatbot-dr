@@ -59,6 +59,7 @@ test('opción 3: cómo funciona', async () => {
 test('opción 4: licencias sujetas a evaluación, sin plazos, con informe para apelar', async () => {
   const r = await createBot(config).handleMessage(oldSession(), '4');
   assert.match(r.text, /está sujeta a evaluación/);
+  assert.match(r.text, /Por teleconsulta también se emiten licencias médicas electrónicas/);
   assert.match(r.text, /No se venden ni se garantizan/);
   assert.match(r.text, /informe médico para apelar, sin costo adicional/);
   assert.doesNotMatch(r.text, /\d+\s*d[ií]as/);
