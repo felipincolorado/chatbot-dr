@@ -11,6 +11,8 @@ const SUPPORT_MOTIVES = {
 };
 const OTHER_MOTIVE = '5';
 
+const PRICES = { fonasa: '$35.000', isapre: '$45.000' };
+
 function buildHumanLink(config, { name, rut, motive, detail } = {}) {
   // Nombre y RUT (para ubicar la ficha), motivo y una frase opcional. Nunca datos clínicos.
   const lines = [name ? `Hola, soy ${name}.` : 'Hola.'];
@@ -28,28 +30,34 @@ function credentialLine(config) {
 
 function buildMessages(config) {
   const menu =
-    '1. Agendar consulta online\n' +
+    '1. Agendar hora\n' +
     '2. Valores y previsión\n' +
     '3. Cómo funciona la consulta\n' +
-    '4. Información sobre licencias\n' +
+    '4. Licencias médicas\n' +
     '5. Ya agendé / soy paciente\n' +
     '0. Volver al menú';
 
-  const intro =
-    `Hola, soy Miriam, la asistente virtual de agendamiento del ${config.doctorFullName}.`;
+  // Sin nombre de persona: en salud, decir de entrada que es un asistente
+  // automático evita que crean hablar con una secretaria.
+  const intro = `Hola 👋 Soy el asistente virtual del ${config.doctorFullName} (respuestas automáticas).`;
 
   const credential = credentialLine(config);
   const withCredential = (text) => (credential ? `${text}\n\n${credential}` : text);
+
+  // Lo que más pregunta quien llega desde un anuncio, ya en el primer mensaje.
+  const resumen =
+    '🩺 Consulta médica online por videollamada\n' +
+    `💳 Fonasa/Dipreca ${PRICES.fonasa} · Isapre ${PRICES.isapre}` +
+    (config.doctorRnpi ? `\n✅ Registro Superintendencia de Salud N° ${config.doctorRnpi}` : '');
 
   return {
     menu,
     intro,
 
     bienvenida:
-      `${intro}\n\n` +
-      'Puedo ayudarte con información sobre la consulta y dirigirte al sitio oficial para reservar una hora. ' +
-      'No realizo diagnósticos ni indicaciones médicas.\n\n' +
-      `¿Qué necesitas?\n\n${menu}`,
+      `${intro}\n\n${resumen}\n\n` +
+      `Responde con un número:\n${menu}\n\n` +
+      'No entrego diagnósticos ni indicaciones médicas.',
 
     menuConHeader: `¿En qué te ayudo?\n\n${menu}`,
 
@@ -64,8 +72,8 @@ function buildMessages(config) {
 
     valores:
       'Valores de la consulta:\n' +
-      '• Fonasa / Dipreca: $35.000\n' +
-      '• Isapre: $45.000\n\n' +
+      `• Fonasa / Dipreca: ${PRICES.fonasa}\n` +
+      `• Isapre: ${PRICES.isapre}\n\n` +
       'Es un precio único por la atención completa. Recetas, certificados o licencias se emiten solo si el médico determina que corresponden.\n\n' +
       '¿Revisamos horarios? Responde 1 para agendar o 0 para el menú.',
 

@@ -2,7 +2,7 @@
   "name": "bot-whatsapp-aravena",
   "version": "19.0.0",
   "private": true,
-  "description": "Miriam: asistente virtual de agendamiento por WhatsApp (Twilio) del Dr. Sebastián Aravena",
+  "description": "Asistente virtual de agendamiento por WhatsApp (Twilio) del Dr. Sebastián Aravena",
   "main": "index.js",
   "engines": {
     "node": ">=18"

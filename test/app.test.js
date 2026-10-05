@@ -36,7 +36,7 @@ test('webhook sin validación (desarrollo) responde TwiML', async () => {
     assert.equal(res.status, 200);
     assert.match(res.headers.get('content-type'), /text\/xml/);
     const xml = await res.text();
-    assert.match(xml, /<Response><Message>Hola, soy Miriam/);
+    assert.match(xml, /<Response><Message>Hola 👋 Soy el asistente virtual/);
   } finally {
     await srv.close();
   }
@@ -95,7 +95,7 @@ test('webhook con firma inválida o ausente responde 403', async () => {
       body: form(params),
     });
     assert.equal(bad.status, 403);
-    assert.doesNotMatch(await bad.text(), /Miriam/);
+    assert.doesNotMatch(await bad.text(), /asistente virtual/);
 
     const missing = await fetch(`${srv.base}/webhook`, {
       method: 'POST',

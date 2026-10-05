@@ -1,4 +1,4 @@
-# chatbot-dr — Miriam, asistente virtual de agendamiento
+# chatbot-dr — el asistente virtual, asistente virtual de agendamiento
 
 Bot de WhatsApp (Twilio) del Dr. Sebastián Aravena. Prioriza el agendamiento en el
 sitio oficial, responde dudas administrativas y deriva a pacientes al WhatsApp
@@ -105,7 +105,7 @@ de tamaño, funcionamiento sin IA y con IA simulada.
    (y `DOCTOR_RNPI` / `DOCTOR_RNPI_URL` solo cuando estén verificados).
    Si se rotó el Auth Token de Twilio al recuperar la cuenta, **actualizar `TWILIO_AUTH_TOKEN`** o todas las solicitudes responderán 403.
 5. Settings → Networking → dominio público (`*.up.railway.app`, HTTPS).
-6. Verificar `https://DOMINIO/health` → 200 y revisar logs (`Miriam Bot v19.0.0 escuchando…`).
+6. Verificar `https://DOMINIO/health` → 200 y revisar logs (`el asistente virtual Bot v19.0.0 escuchando…`).
 
 ## Configuración en Twilio
 

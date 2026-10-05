@@ -7,7 +7,7 @@ const app = createApp(config);
 
 const server = app.listen(config.port, () => {
   console.log(
-    `Miriam Bot v${config.version} escuchando en puerto ${config.port} ` +
+    `Bot v${config.version} escuchando en puerto ${config.port} ` +
       `(firma Twilio: ${config.twilio.validateSignature ? 'activa' : 'desactivada'}, ` +
       `IA: ${config.ai.enabled ? 'activada' : 'desactivada'}, ` +
       `RNPI: ${config.doctorRnpi ? 'configurado' : 'no configurado'})`

@@ -164,7 +164,7 @@ Detalles completos en `README.md`.
 2. En Railway → Deployments, esperar a que el despliegue quede **Active/Success**.
 3. Probar en el navegador `https://DOMINIO/health` → debe mostrar `{"status":"ok","version":"19.0.0"}`.
 4. Logs de Railway: debe aparecer
-   `Miriam Bot v19.0.0 escuchando en puerto … (firma Twilio: activa, IA: desactivada, …)`.
+   `el asistente virtual Bot v19.0.0 escuchando en puerto … (firma Twilio: activa, IA: desactivada, …)`.
 
 ---
 

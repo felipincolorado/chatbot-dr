@@ -81,7 +81,7 @@ function createApp(config, { ai, logger = console } = {}) {
   });
 
   app.get('/', (req, res) => {
-    res.status(200).type('text/plain').send('Miriam - asistente virtual de agendamiento. OK');
+    res.status(200).type('text/plain').send('Asistente virtual del Dr. Sebastian Aravena. OK');
   });
 
   function verifyTwilioSignature(req, res, next) {

@@ -16,9 +16,12 @@ function oldSession() {
 test('bienvenida identifica asistente virtual y muestra el menú', async () => {
   const bot = createBot(config);
   const r = await bot.handleMessage(newSession(), 'Hola');
-  assert.match(r.text, /Miriam, la asistente virtual de agendamiento del Dr\. Sebastián Aravena/);
-  assert.match(r.text, /No realizo diagnósticos ni indicaciones médicas/);
-  for (const opt of ['1. Agendar consulta online', '2. Valores y previsión', '3. Cómo funciona la consulta', '4. Información sobre licencias', '5. Ya agendé / soy paciente', '0. Volver al menú']) {
+  assert.match(r.text, /Soy el asistente virtual del Dr\. Sebastián Aravena \(respuestas automáticas\)/);
+  assert.match(r.text, /No entrego diagnósticos ni indicaciones médicas/);
+  // Precio y modalidad ya en el primer mensaje (quien llega por un anuncio pregunta eso primero).
+  assert.match(r.text, /videollamada/);
+  assert.match(r.text, /Fonasa\/Dipreca \$35\.000 · Isapre \$45\.000/);
+  for (const opt of ['1. Agendar hora', '2. Valores y previsión', '3. Cómo funciona la consulta', '4. Licencias médicas', '5. Ya agendé / soy paciente', '0. Volver al menú']) {
     assert.ok(r.text.includes(opt), opt);
   }
 });
@@ -67,7 +70,7 @@ test('mensaje no comprendido muestra ayuda y menú, no solo "No entendí"', asyn
   const r = await createBot(config).handleMessage(oldSession(), 'xyz qwerty');
   assert.equal(r.intent, 'no_entendido');
   assert.match(r.text, /agenda, los valores, cómo funciona la consulta y soporte/);
-  assert.ok(r.text.includes('1. Agendar consulta online'));
+  assert.ok(r.text.includes('1. Agendar hora'));
   assert.doesNotMatch(r.text, /^No entendí/);
 });
 
@@ -162,7 +165,7 @@ test('0 vuelve al menú desde el flujo de soporte', async () => {
   await bot.handleMessage(s, '5');
   const r = await bot.handleMessage(s, '0');
   assert.equal(s.state, 'MENU');
-  assert.ok(r.text.includes('1. Agendar consulta online'));
+  assert.ok(r.text.includes('1. Agendar hora'));
 });
 
 test('contenido clínico: no diagnostica y pide no enviar antecedentes', async () => {
@@ -196,4 +199,11 @@ test('pedir una persona no entrega el enlace humano sin pasar por "ya soy pacien
   assert.equal(r.intent, 'humano');
   assert.doesNotMatch(r.text, /wa\.me/);
   assert.match(r.text, /responde 5/);
+});
+
+test('bienvenida muestra el registro de la Superintendencia solo si está configurado', async () => {
+  const sin = await createBot(config).handleMessage(newSession(), 'hola');
+  assert.doesNotMatch(sin.text, /Superintendencia/);
+  const con = await createBot(testConfig({ DOCTOR_RNPI: '763509' })).handleMessage(newSession(), 'hola');
+  assert.match(con.text, /Registro Superintendencia de Salud N° 763509/);
 });
