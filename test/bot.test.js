@@ -34,8 +34,16 @@ test('opción 1: agendar', async () => {
   assert.match(r.text, /videollamada/);
   assert.match(r.text, /Paga online/);
   assert.match(r.text, /correo/);
-  assert.ok(r.text.includes('https://drsebastianaravena.cl/agendar/'));
+  assert.ok(r.text.includes('https://drsebastianaravena.cl/agendar/?utm_source=whatsapp&utm_medium=chatbot&utm_campaign=bot_agenda'));
+  assert.match(r.text, /Horario de atención:\* Lunes a viernes en la tarde .*sábados en la mañana/);
   assert.match(r.text, /duda antes de reservar/);
+});
+
+test('el enlace de la agenda respeta un utm_source propio de AGENDA_URL', async () => {
+  const cfg = testConfig({ AGENDA_URL: 'https://ejemplo.cl/x?utm_source=otro' });
+  const r = await createBot(cfg).handleMessage(oldSession(), '1');
+  assert.ok(r.text.includes('https://ejemplo.cl/x?utm_source=otro'));
+  assert.doesNotMatch(r.text, /utm_medium=chatbot/);
 });
 
 test('opción 2: valores', async () => {

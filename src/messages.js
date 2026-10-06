@@ -28,6 +28,25 @@ const MOTIVE_ITEMS = [
 
 const PRICES = { fonasa: '$35.000', isapre: '$45.000' };
 
+// Horario general de atención (las horas exactas se ven en la agenda).
+const HORARIO = 'Lunes a viernes en la tarde (desde las 18:00) y sábados en la mañana (desde las 11:00).';
+
+// Enlace a la agenda marcado con UTM para contar en las estadísticas del sitio
+// cuántas visitas llegan desde el bot. Respeta parámetros que ya traiga la URL.
+function trackedUrl(url) {
+  try {
+    const u = new URL(url);
+    if (!u.searchParams.has('utm_source')) {
+      u.searchParams.set('utm_source', 'whatsapp');
+      u.searchParams.set('utm_medium', 'chatbot');
+      u.searchParams.set('utm_campaign', 'bot_agenda');
+    }
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
 // Opciones del menú principal. `item` (máx. 24) y `description` (máx. 72) se
 // usan en la lista desplegable de WhatsApp.
 const MENU_OPTIONS = [
@@ -82,6 +101,7 @@ function buildMessages(config) {
   const opciones = MENU_OPTIONS.map((o) => `${o.id}. ${o.label}`).join('\n');
   const menu = `${opciones}\n0. Volver al menú`;
   const credential = credentialLine(config);
+  const agenda = trackedUrl(config.agendaUrl);
 
   // Quién atiende, respaldo y precio primero; el aviso de asistente automático
   // al final, breve y visible.
@@ -113,10 +133,11 @@ function buildMessages(config) {
     agendar: {
       title: 'Agendar una hora',
       body:
-        `1. Entra a ${config.agendaUrl}\n` +
+        `1. Entra a ${agenda}\n` +
         '2. Elige el día y horario que te acomode.\n' +
         `3. Paga online: ${precios}.\n` +
         '4. Recibirás en tu correo la confirmación y el enlace de la videollamada.\n\n' +
+        `*Horario de atención:* ${HORARIO}\n\n` +
         '¿Tienes alguna duda antes de reservar? Escríbela aquí.',
       nav: NAV.agendar,
     },
@@ -133,7 +154,7 @@ function buildMessages(config) {
     comoFunciona: {
       title: 'Cómo funciona la consulta',
       body:
-        `1. *Reserva:* eliges horario y pagas en ${config.agendaUrl}\n` +
+        `1. *Reserva:* eliges horario y pagas en ${agenda}\n` +
         '2. *Confirmación:* te llega un correo con el enlace de la videollamada.\n' +
         '3. *Consulta:* a la hora agendada entras desde tu celular o computador.\n' +
         '4. *Evaluación:* el médico revisa tu caso contigo.\n' +
@@ -207,7 +228,8 @@ function buildMessages(config) {
     sobrecupo: {
       title: 'Disponibilidad',
       body:
-        `Los horarios disponibles son los que aparecen en ${config.agendaUrl}\n\n` +
+        `*Horario de atención:* ${HORARIO}\n` +
+        `Las horas libres se ven en ${agenda}\n\n` +
         'Si ya eres paciente y tienes un caso especial, responde *5* para escribir a atención a pacientes.',
       nav: NAV.licencias,
     },
