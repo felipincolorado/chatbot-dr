@@ -123,7 +123,11 @@ function buildMessages(config) {
     bienvenida: {
       kind: 'menu',
       title: 'Hola, te doy la bienvenida',
-      body: `${encabezado}\n\nAtención por videollamada\n${precios}\n\n¿En qué te puedo ayudar?`,
+      body:
+        `${encabezado}\n\nAtención por videollamada\n${precios}\n\n` +
+        `*Agenda tu hora aquí:* ${agenda}\n` +
+        'Eliges horario, pagas online y te llega el enlace de la videollamada al correo.\n\n' +
+        '¿Tienes dudas? Elige una opción o escríbeme.',
       options: opciones,
       note: aviso,
     },
@@ -246,7 +250,9 @@ function buildMessages(config) {
       title: 'Consultas de salud',
       body:
         'Por este chat no puedo evaluar síntomas, diagnosticar ni indicar medicamentos. Te pido no enviar antecedentes de salud por aquí.\n\n' +
-        'El médico lo revisará contigo en la consulta. Si es una urgencia, acude a urgencias o llama al 131.',
+        'El médico lo revisará contigo en la consulta y, si corresponde, puede emitir receta, orden de exámenes o licencia (sujeto a evaluación médica).\n\n' +
+        `Agenda tu hora aquí: ${agenda}\n\n` +
+        'Si es una urgencia, acude a urgencias o llama al 131.',
       nav: NAV.principal,
     },
 
@@ -256,7 +262,8 @@ function buildMessages(config) {
 
     noEntendido: menuSection(
       'No logré entender tu mensaje',
-      'Puedo ayudarte con la agenda, los valores, cómo funciona la consulta, licencias y atención a pacientes.'
+      `Si quieres agendar, entra aquí: ${agenda}\n\n` +
+        'También puedo ayudarte con valores, cómo funciona la consulta y licencias. Si ya agendaste, elige "Ya agendé / paciente".'
     ),
 
     sinTexto: menuSection('Solo mensajes de texto', 'Por ahora solo puedo leer mensajes de texto.'),

@@ -168,16 +168,17 @@ function createBot(config, { ai = null } = {}) {
       return reply(intent, session, isFirstMessage);
     }
 
-    if (isFirstMessage) {
-      return out('saludo', msg.bienvenida);
-    }
-
     // Capa opcional de IA: solo elige entre respuestas aprobadas.
     if (ai) {
       const topic = await ai.pickTopic(text);
       if (topic && RESPONSES[topic]) {
-        return { ...reply(topic, session, false), intent: `ai:${topic}` };
+        session.state = 'MENU';
+        return { ...reply(topic, session, isFirstMessage), intent: `ai:${topic}` };
       }
+    }
+
+    if (isFirstMessage) {
+      return out('saludo', msg.bienvenida);
     }
 
     return out('no_entendido', msg.noEntendido);

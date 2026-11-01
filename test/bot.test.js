@@ -82,9 +82,22 @@ test('primer mensaje con intención directa agrega presentación', async () => {
 test('mensaje no comprendido muestra ayuda y menú, no solo "No entendí"', async () => {
   const r = await createBot(config).handleMessage(oldSession(), 'xyz qwerty');
   assert.equal(r.intent, 'no_entendido');
-  assert.match(r.text, /la agenda, los valores, cómo funciona la consulta, licencias y atención a pacientes/);
+  assert.match(r.text, /drsebastianaravena\.cl\/agendar\/\?utm_source=whatsapp/);
   assert.ok(r.text.includes('1. Agendar una hora'));
   assert.doesNotMatch(r.text, /^No entendí/);
+});
+
+test('el saludo de bienvenida ya trae el enlace para agendar', async () => {
+  const r = await createBot(config).handleMessage({ isNew: true }, '¡Hola! Quiero más información');
+  assert.match(r.text, /Agenda tu hora aquí:\* https:\/\/drsebastianaravena\.cl\/agendar\//);
+});
+
+test('primer mensaje libre: la IA elige la respuesta y lleva a agendar', async () => {
+  const ai = { pickTopic: async () => 'clinico' };
+  const r = await createBot(config, { ai }).handleMessage({ isNew: true }, 'necesito que me vea por lo de mi trabajo, ando muy mal');
+  assert.equal(r.intent, 'ai:clinico');
+  assert.match(r.text, /Agenda tu hora aquí: https:\/\/drsebastianaravena\.cl\/agendar\//);
+  assert.match(r.text, /No entrega diagnósticos/);
 });
 
 function linkText(text) {

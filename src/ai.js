@@ -12,6 +12,7 @@ const APPROVED_TOPICS = {
   documentos: 'Recetas y certificados: solo si el médico determina que corresponden; sin costo adicional.',
   paciente: 'Pacientes que ya reservaron o se atendieron: problemas con reserva, reprogramación, reembolso, problemas posteriores. Se deriva a soporte humano.',
   sobrecupo: 'Disponibilidad de horarios y sobrecupos: solo los horarios publicados en el sitio de agendamiento.',
+  clinico: 'La persona describe síntomas o un problema de salud no urgente, o pide evaluación, licencia, receta o examen por un motivo de salud. Se le indica que el médico lo evalúa en la consulta y se le da el enlace para agendar.',
   humano: 'La persona pide hablar con alguien del equipo (se le explica que el contacto humano es solo para pacientes con hora).',
 };
 
@@ -20,7 +21,7 @@ const SYSTEM_PROMPT =
   'Responde ÚNICAMENTE con uno de estos identificadores, sin ningún otro texto:\n' +
   Object.entries(APPROVED_TOPICS).map(([id, desc]) => `- ${id}: ${desc}`).join('\n') +
   '\n- none: el mensaje no corresponde claramente a ninguno de los temas anteriores, o pide un diagnóstico, ' +
-  'tratamiento, medicamento u opinión médica.\n' +
+  'tratamiento, medicamento u opinión médica concreta, o describe una urgencia.\n' +
   'Ante cualquier duda responde none.';
 
 // Elimina datos personales antes de enviar el texto al proveedor.

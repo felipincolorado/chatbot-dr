@@ -75,7 +75,7 @@ function loadConfig(env = process.env) {
       enabled: bool(env, 'AI_ENABLED', false),
       provider: str(env, 'AI_PROVIDER').toLowerCase() || 'anthropic',
       apiKey: str(env, 'AI_API_KEY') || str(env, 'ANTHROPIC_API_KEY'),
-      model: str(env, 'AI_MODEL') || 'claude-opus-5-5',
+      model: str(env, 'AI_MODEL') || 'claude-haiku-5-5',
       timeoutMs: Number(str(env, 'AI_TIMEOUT_MS')) || 6000,
     },
   };
