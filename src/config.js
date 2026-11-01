@@ -77,6 +77,11 @@ function loadConfig(env = process.env) {
       apiKey: str(env, 'AI_API_KEY') || str(env, 'ANTHROPIC_API_KEY'),
       model: str(env, 'AI_MODEL') || 'claude-haiku-5-5',
       timeoutMs: Number(str(env, 'AI_TIMEOUT_MS')) || 6000,
+      // classify: solo elige respuestas aprobadas. chat: conversa con la base de
+      // conocimiento (src/knowledge.js) y cada respuesta pasa por checkReply.
+      mode: str(env, 'AI_MODE').toLowerCase() === 'chat' ? 'chat' : 'classify',
+      chatModel: str(env, 'AI_CHAT_MODEL') || 'claude-sonnet-5-5',
+      chatTimeoutMs: Number(str(env, 'AI_CHAT_TIMEOUT_MS')) || 10000,
     },
   };
 }

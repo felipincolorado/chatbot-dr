@@ -3,8 +3,16 @@
 // como texto (`text`) y, si corresponde, como sección para botones (`ui`).
 // No conoce Express ni Twilio, por eso se prueba fácilmente.
 
-const { buildMessages, render, SUPPORT_MOTIVES, OTHER_MOTIVE, MOTIVE_ITEMS } = require('./messages');
+const { buildMessages, render, SUPPORT_MOTIVES, OTHER_MOTIVE, MOTIVE_ITEMS, NAV } = require('./messages');
 const { detectIntent, selectedNumber, clean } = require('./normalizeInput');
+const { buildKnowledge, checkReply } = require('./knowledge');
+const { redact } = require('./ai');
+
+// En modo conversación estas intenciones siempre usan la respuesta fija:
+// seguridad, flujo con RUT y mensajes con síntomas (no se envían a la IA).
+const FIXED_IN_CHAT = new Set(['crisis', 'urgencia', 'clinico', 'paciente', 'menu']);
+const SHORT_WORDS = 5;
+const MAX_HISTORY = 8;
 
 // Respuesta del bot: texto de respaldo + sección para mensajes interactivos.
 function out(intent, section) {
@@ -72,6 +80,28 @@ function cleanDetail(text) {
 
 function createBot(config, { ai = null } = {}) {
   const msg = buildMessages(config);
+  const knowledge = buildKnowledge(config);
+
+  function wantsChat(intent, text) {
+    if (!ai || ai.mode !== 'chat') return false;
+    if (FIXED_IN_CHAT.has(intent) || selectedNumber(text)) return false;
+    const words = clean(text).split(' ').filter(Boolean).length;
+    return !intent || words > SHORT_WORDS;
+  }
+
+  async function chatReply(session, text, isFirstMessage) {
+    const history = [...(session.history || []), { role: 'user', content: redact(text) }];
+    const raw = await ai.converse(knowledge, history);
+    const problem = raw ? checkReply(raw) : 'sin_respuesta';
+    if (problem) {
+      console.warn('[ai] respuesta de chat descartada:', problem);
+      return null;
+    }
+    session.history = [...history, { role: 'assistant', content: raw }].slice(-MAX_HISTORY);
+    session.state = 'MENU';
+    const body = isFirstMessage ? `${msg.intro}\n\n${raw}` : raw;
+    return out('ai:chat', { body, nav: NAV.principal });
+  }
 
   const RESPONSES = {
     saludo: () => msg.bienvenida,
@@ -163,6 +193,11 @@ function createBot(config, { ai = null } = {}) {
     }
 
     const intent = detectIntent(text);
+    if (wantsChat(intent, text)) {
+      const answer = await chatReply(session, text, isFirstMessage);
+      if (answer) return answer;
+    }
+
     if (intent) {
       session.state = 'MENU';
       return reply(intent, session, isFirstMessage);

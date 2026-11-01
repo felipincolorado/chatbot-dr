@@ -151,6 +151,7 @@ function buildMessages(config) {
       body:
         `Fonasa / Dipreca: ${PRICES.fonasa}\n` +
         `Isapre: ${PRICES.isapre}\n\n` +
+        'Es atención particular: el valor depende de tu previsión, pero no se usa bono ni convenio.\n\n' +
         'Precio único por la atención completa. Si el médico lo indica, la receta, la orden de exámenes, el certificado o la licencia están incluidos, sin costo adicional.',
       nav: NAV.principal,
     },
@@ -282,4 +283,5 @@ module.exports = {
   MENU_OPTIONS,
   NAV,
   PRICES,
+  trackedUrl,
 };

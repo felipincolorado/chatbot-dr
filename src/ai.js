@@ -54,10 +54,33 @@ function createAnthropicClassifier(aiConfig) {
   };
 }
 
-function createAi(aiConfig, { classifier } = {}) {
+function createAnthropicChatter(aiConfig) {
+  const Anthropic = require('@anthropic-ai/sdk');
+  const client = new Anthropic({ apiKey: aiConfig.apiKey, timeout: aiConfig.chatTimeoutMs, maxRetries: 0 });
+
+  return async function chat(system, messages) {
+    const response = await client.messages.create({
+      model: aiConfig.chatModel,
+      max_tokens: 2000,
+      output_config: { effort: 'low' },
+      system,
+      messages,
+    });
+    if (response.stop_reason !== 'end_turn') return null;
+    const block = response.content.find((b) => b.type === 'text');
+    return block ? block.text : null;
+  };
+}
+
+function withTimeout(promise, ms) {
+  return Promise.race([promise, new Promise((resolve) => setTimeout(() => resolve(null), ms).unref())]);
+}
+
+function createAi(aiConfig, { classifier, chatter } = {}) {
   if (!aiConfig || !aiConfig.enabled) return null;
 
   let classify = classifier;
+  let chat = chatter;
   if (!classify) {
     if (!aiConfig.apiKey) {
       console.warn('[ai] AI_ENABLED=true pero falta AI_API_KEY; la IA queda desactivada.');
@@ -69,6 +92,7 @@ function createAi(aiConfig, { classifier } = {}) {
     }
     try {
       classify = createAnthropicClassifier(aiConfig);
+      if (!chat && aiConfig.mode === 'chat') chat = createAnthropicChatter(aiConfig);
     } catch (err) {
       console.warn('[ai] No se pudo inicializar el proveedor; la IA queda desactivada.');
       return null;
@@ -76,6 +100,20 @@ function createAi(aiConfig, { classifier } = {}) {
   }
 
   return {
+    mode: chat ? 'chat' : 'classify',
+
+    // history: [{ role: 'user'|'assistant', content }], ya redactado. Devuelve texto o null.
+    async converse(system, history) {
+      if (!chat) return null;
+      try {
+        const text = await withTimeout(chat(system, history), aiConfig.chatTimeoutMs || 10000);
+        return text ? String(text).trim() : null;
+      } catch (err) {
+        console.warn('[ai] Error del proveedor (chat):', err && err.status ? `HTTP ${err.status}` : 'sin detalle');
+        return null;
+      }
+    },
+
     async pickTopic(userText) {
       const safe = redact(userText);
       if (safe.length < 3) return null;
@@ -95,3 +133,4 @@ function createAi(aiConfig, { classifier } = {}) {
 }
 
 module.exports = { createAi, redact, APPROVED_TOPICS, SYSTEM_PROMPT };
+
