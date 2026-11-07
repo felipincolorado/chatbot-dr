@@ -39,21 +39,20 @@ test('modo chat: pregunta libre la responde Claude con botones y guarda historia
 test('modo chat: botones, números y mensajes cortos con intención usan respuesta fija', async () => {
   const calls = [];
   const bot = chatBot('no debería usarse', calls);
-  for (const t of ['1', 'Valores y previsión', 'quiero agendar una hora', 'menú principal']) {
+  for (const t of ['1', '5', 'Valores y previsión', 'agendar hora', 'ya soy paciente', 'menú principal']) {
     const r = await bot.handleMessage(old(), t);
     assert.notEqual(r.intent, 'ai:chat', t);
   }
   assert.equal(calls.length, 0);
 });
 
-test('modo chat: crisis, urgencias, síntomas y soporte nunca van a Claude', async () => {
+test('modo chat: crisis, urgencias y síntomas nunca van a Claude', async () => {
   const calls = [];
   const bot = chatBot('no debería usarse', calls);
   const cases = [
     'ya no quiero vivir, no sé qué hacer con todo esto',
     'es urgente, me duele mucho el pecho y no puedo respirar bien',
     'tengo dolor de espalda hace una semana y soy diabético, qué hago',
-    'ya agendé ayer y no me llegó el correo con el link',
   ];
   for (const t of cases) await bot.handleMessage(old(), t);
   assert.equal(calls.length, 0);

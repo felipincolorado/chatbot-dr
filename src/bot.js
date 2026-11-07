@@ -10,8 +10,10 @@ const { redact } = require('./ai');
 
 // En modo conversación estas intenciones siempre usan la respuesta fija:
 // seguridad, flujo con RUT y mensajes con síntomas (no se envían a la IA).
-const FIXED_IN_CHAT = new Set(['crisis', 'urgencia', 'clinico', 'paciente', 'menu']);
-const SHORT_WORDS = 5;
+// 'paciente' con texto largo (ej. "si no me conecto, ¿me devuelven?") lo responde
+// Claude con la política; el flujo con RUT se entra con 5 o frases cortas.
+const FIXED_IN_CHAT = new Set(['crisis', 'urgencia', 'clinico', 'menu']);
+const SHORT_WORDS = 3;
 const MAX_HISTORY = 8;
 
 // Respuesta del bot: texto de respaldo + sección para mensajes interactivos.
