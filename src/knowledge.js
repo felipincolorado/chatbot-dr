@@ -22,7 +22,7 @@ function buildKnowledge(config) {
 - Confidencialidad: la consulta es privada y está protegida por el secreto médico (Ley 20.584 de derechos y deberes de los pacientes).
 - Cómo agendar: en ${agenda} se elige la hora y se paga online; llega al correo la confirmación y el enlace de la videollamada.
 - Reprogramar: una vez por reserva, sin costo, con al menos 8 horas de anticipación. Cancelar con más de 24 horas: se devuelve el 90% (10% comisión de pago). Con menos de 24 horas o si no se conecta: sin devolución. Si cancela el doctor: 100%. Devolución en 3 a 5 días hábiles.
-- Si ya agendó o se atendió y tiene un problema: que responda 5 para escribir a atención a pacientes.
+- Si ya agendó o se atendió y tiene un problema: que responda 5 para escribir a atención a pacientes. Atención a pacientes responde de lunes a viernes de 9:00 a 19:00 y sábados de 9:00 a 13:00; se puede escribir en cualquier momento y se contesta en ese horario. Tú (la secretaria virtual) respondes a toda hora.
 
 # Reglas que nunca rompes
 1. Nunca aseguras un resultado: ni licencia, ni días, ni receta, ni medicamento. Dilo así: "eso lo define el doctor al evaluarte".
