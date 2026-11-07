@@ -30,7 +30,7 @@ Este texto se convierte en las instrucciones del bot: si algo no está aquí, el
 ## 3. Valores y horarios
 
 - Atención particular (no se usa bono). Valor según previsión: Fonasa / Dipreca $35.000, Isapre $45.000. Precio único: incluye receta, orden, certificado o licencia si corresponden.
-- Horario: lunes a viernes de 18:00 a 19:40 y sábados de 11:00 a 11:40, en bloques de 20 minutos.
+- Horario: lunes a jueves de 18:00 a 19:20, viernes de 17:00 a 18:20 y sábados de 11:00 a 12:20, en bloques de 20 minutos.
 - Horas libres reales: solo en https://drsebastianaravena.cl/agendar/ (el bot no inventa horas).
 - Se paga online al reservar; llega al correo la confirmación y el link de la videollamada.
 - Reprogramar: una vez por reserva, sin costo, con al menos 8 horas de anticipación.

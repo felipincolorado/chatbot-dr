@@ -29,7 +29,7 @@ const MOTIVE_ITEMS = [
 const PRICES = { fonasa: '$35.000', isapre: '$45.000' };
 
 // Horario general de atención (las horas exactas se ven en la agenda).
-const HORARIO = 'Lunes a viernes en la tarde (desde las 18:00) y sábados en la mañana (desde las 11:00).';
+const HORARIO = 'Lunes a jueves de 18:00 a 19:20, viernes de 17:00 a 18:20 y sábados de 11:00 a 12:20.';
 
 // Enlace a la agenda marcado con UTM para contar en las estadísticas del sitio
 // cuántas visitas llegan desde el bot. Respeta parámetros que ya traiga la URL.
