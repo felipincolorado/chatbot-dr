@@ -76,7 +76,7 @@ test('modo chat: primer mensaje lleva el aviso de secretaria virtual', async () 
   const bot = chatBot('Con gusto. Atiende mayores de 18 por videollamada.');
   const r = await bot.handleMessage({ isNew: true, state: 'MENU' }, 'hola, atienden a personas de regiones o solo santiago?');
   assert.equal(r.intent, 'ai:chat');
-  assert.match(r.text, /Secretaria virtual del doctor/);
+  assert.match(r.text, /secretaria virtual del Dr/);
 });
 
 test('modo chat: el RUT y el teléfono no se envían a Claude', async () => {

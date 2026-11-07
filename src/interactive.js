@@ -34,7 +34,7 @@ function templateDefinitions() {
 
   const defs = {
     menu: {
-      'twilio/list-picker': { body: '*{{1}}*\n\n{{2}}\n\nToca "Ver opciones" para elegir.', button: 'Ver opciones', items: menuItems },
+      'twilio/list-picker': { body: '*{{1}}*\n\n{{2}}\n\n¿Qué quieres saber?', button: 'Ver opciones', items: menuItems },
     },
     motives: {
       'twilio/list-picker': { body: 'Gracias, {{1}}. ¿Cuál es el motivo de tu consulta?', button: 'Elegir motivo', items: motiveItems },
@@ -43,7 +43,7 @@ function templateDefinitions() {
   for (const [key, actions] of Object.entries(NAV)) {
     defs[`nav_${key}`] = {
       'twilio/quick-reply': {
-        body: '*{{1}}*\n\n{{2}}\n\nElige una opción:',
+        body: '*{{1}}*\n\n{{2}}\n\n¿Te ayudo en algo más?',
         actions: actions.map(([id, title]) => ({ id, title })),
       },
     };

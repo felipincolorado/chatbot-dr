@@ -34,6 +34,11 @@ const HORARIO = 'Lunes a viernes en la tarde (desde las 18:00) y sábados en la 
 // Enlace a la agenda marcado con UTM para contar en las estadísticas del sitio
 // cuántas visitas llegan desde el bot. Respeta parámetros que ya traiga la URL.
 function trackedUrl(url) {
+  // Enlace limpio y corto en el chat (los UTM se veían como spam).
+  return String(url || '').replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+}
+
+function trackedUrlUtm(url) {
   try {
     const u = new URL(url);
     if (!u.searchParams.has('utm_source')) {
@@ -110,7 +115,7 @@ function buildMessages(config) {
     (config.doctorTagline ? `\n${config.doctorTagline}` : '') +
     (config.doctorRnpi ? `\nReg. Superintendencia de Salud N° ${config.doctorRnpi}` : '');
   const aviso = 'Secretaria virtual del doctor (respuestas automáticas). No entrega diagnósticos ni indicaciones médicas.';
-  const intro = `Hola, te doy la bienvenida a la consulta online del ${config.doctorFullName}. ${aviso}`;
+  const intro = `Hola, soy la secretaria virtual del ${config.doctorFullName}.`;
 
   // Secciones con lista desplegable del menú principal (kind: 'menu').
   const menuSection = (title, body) => ({ kind: 'menu', title, body, options: opciones });
@@ -120,67 +125,50 @@ function buildMessages(config) {
     intro,
     aviso,
 
-    bienvenida: {
-      kind: 'menu',
-      title: 'Hola, te doy la bienvenida',
-      body:
-        `${encabezado}\n\nAtención por videollamada\n${precios}\n\n` +
-        `*Agenda tu hora aquí:* ${agenda}\n` +
-        'Eliges horario, pagas online y te llega el enlace de la videollamada al correo.\n\n' +
-        '¿Tienes dudas? Elige una opción o escríbeme.',
-      options: opciones,
-      note: aviso,
-    },
+    // Texto simple (no lista): ocupa todo el ancho y cabe en una pantalla.
+    bienvenida:
+      `Hola, soy la secretaria virtual del ${config.doctorFullName}.\n\n` +
+      `Consulta médica por videollamada:\nFonasa/Dipreca ${PRICES.fonasa} · Isapre ${PRICES.isapre}\n\n` +
+      `Agenda aquí: ${agenda}\n\n` +
+      '¿Tienes alguna duda? Escríbeme, o responde *0* para ver las opciones.',
 
     menuConHeader: menuSection('Menú principal', '¿En qué te puedo ayudar?'),
 
     agendar: {
       title: 'Agendar una hora',
       body:
-        `1. Entra a ${agenda}\n` +
-        '2. Elige el día y horario que te acomode.\n' +
-        `3. Paga online: ${precios}.\n` +
-        '4. Recibirás en tu correo la confirmación y el enlace de la videollamada.\n\n' +
-        `*Horario de atención:* ${HORARIO}\n\n` +
-        '¿Tienes alguna duda antes de reservar? Escríbela aquí.',
+        `Elige tu hora y paga aquí: ${agenda}\n\n` +
+        'Te llega al correo la confirmación y el enlace de la videollamada.',
       nav: NAV.agendar,
     },
 
     valores: {
       title: 'Valores de la consulta',
       body:
-        `Fonasa / Dipreca: ${PRICES.fonasa}\n` +
-        `Isapre: ${PRICES.isapre}\n\n` +
-        'Es atención particular: el valor depende de tu previsión, pero no se usa bono ni convenio.\n\n' +
-        'Precio único por la atención completa. Si el médico lo indica, la receta, la orden de exámenes, el certificado o la licencia están incluidos, sin costo adicional.',
+        `Fonasa/Dipreca ${PRICES.fonasa} · Isapre ${PRICES.isapre}\n\n` +
+        'Atención particular, sin bono. Si el doctor los indica, receta, exámenes, certificado o licencia van incluidos.',
       nav: NAV.principal,
     },
 
     comoFunciona: {
       title: 'Cómo funciona la consulta',
       body:
-        `1. *Reserva:* eliges horario y pagas en ${agenda}\n` +
-        '2. *Confirmación:* te llega un correo con el enlace de la videollamada.\n' +
-        '3. *Consulta:* a la hora agendada entras desde tu celular o computador.\n' +
-        '4. *Evaluación:* el médico revisa tu caso contigo.\n' +
-        '5. *Documentos:* si corresponde, recibes receta, orden de exámenes, certificado o licencia médica.' +
-        (credential ? `\n\n${credential}` : ''),
+        'Reservas y pagas online, te llega el enlace al correo y a la hora agendada entras por videollamada desde el celular o el computador. Dura 20 minutos.\n\n' +
+        'Si corresponde, el doctor emite receta, exámenes, certificado o licencia electrónica.',
       nav: NAV.principal,
     },
 
     licencias: {
       title: 'Licencias médicas',
       body:
-        'Por teleconsulta también se emiten licencias médicas electrónicas, igual que en una consulta presencial.\n\n' +
-        'La licencia está sujeta a evaluación: el médico determina en la consulta si corresponde y por cuántos días, según tu situación de salud. No se venden ni se garantizan.\n\n' +
-        'Si tu licencia es rechazada u observada por la Isapre o la COMPIN, puedes solicitar el informe médico para apelar, sin costo adicional.',
+        'Sí, se emiten licencias electrónicas. Cada licencia está sujeta a evaluación: el doctor decide si corresponde.\n\n' +
+        'Como médico general, cada licencia es de hasta 14 días, con un máximo de una renovación.',
       nav: NAV.licencias,
     },
 
     pacienteInicio: {
       title: 'Atención a pacientes',
       body:
-        'Este canal es para quienes ya agendaron o se atendieron con el doctor.\n\n' +
         'Para derivarte a atención a pacientes, escribe en un solo mensaje tu *nombre, apellido y RUT*.\n' +
         'Ejemplo: María González 12.345.678-5',
       nav: NAV.menu,
@@ -218,9 +206,7 @@ function buildMessages(config) {
     humano: {
       title: 'Atención a pacientes',
       body:
-        'El WhatsApp de atención a pacientes es para quienes ya agendaron o se atendieron con el doctor.\n\n' +
-        '• Si ya agendaste, responde *5* o toca "Ya soy paciente".\n' +
-        '• Si aún no, resuelvo tus dudas aquí.',
+        'Si ya agendaste o te atendiste, toca "Ya soy paciente". Si aún no, resuelvo tus dudas aquí.',
       nav: NAV.licencias,
     },
 
@@ -242,18 +228,16 @@ function buildMessages(config) {
     urgencia: {
       title: 'Urgencias',
       body:
-        'Si es una urgencia médica, acude al servicio de urgencia más cercano o llama al SAMU 131.\n\n' +
-        'Esta consulta online no atiende urgencias.',
+        'Esta consulta online no atiende urgencias. Acude a la urgencia más cercana o llama al SAMU 131.',
       nav: NAV.principal,
     },
 
     clinico: {
       title: 'Consultas de salud',
       body:
-        'Por este chat no puedo evaluar síntomas, diagnosticar ni indicar medicamentos. Te pido no enviar antecedentes de salud por aquí.\n\n' +
-        'El médico lo revisará contigo en la consulta y, si corresponde, puede emitir receta, orden de exámenes o licencia (sujeto a evaluación médica).\n\n' +
-        `Agenda tu hora aquí: ${agenda}\n\n` +
-        'Si es una urgencia, acude a urgencias o llama al 131.',
+        'Por aquí no puedo evaluar síntomas ni indicar medicamentos; eso lo revisa el doctor en la consulta.\n\n' +
+        `Agenda aquí: ${agenda}\n\n` +
+        'Si es una urgencia, llama al SAMU 131.',
       nav: NAV.principal,
     },
 
@@ -263,8 +247,7 @@ function buildMessages(config) {
 
     noEntendido: menuSection(
       'No logré entender tu mensaje',
-      `Si quieres agendar, entra aquí: ${agenda}\n\n` +
-        'También puedo ayudarte con valores, cómo funciona la consulta y licencias. Si ya agendaste, elige "Ya agendé / paciente".'
+      `Para agendar: ${agenda}\n\nO elige un tema de la lista.`
     ),
 
     sinTexto: menuSection('Solo mensajes de texto', 'Por ahora solo puedo leer mensajes de texto.'),

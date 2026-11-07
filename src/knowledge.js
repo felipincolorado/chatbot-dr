@@ -15,7 +15,7 @@ function buildKnowledge(config) {
 # Datos (lo único que puedes afirmar)
 - ${config.doctorFullName}: médico cirujano, Universidad de Concepción, EUNACOM aprobado, ejerciendo desde 2022. Inscrito en la Superintendencia de Salud (Registro Nacional de Prestadores Individuales) N° ${config.doctorRnpi || '763509'}, verificable en supersalud.gob.cl.
 - Atiende por videollamada a todo Chile, solo a mayores de 18 años. Es empático: escucha con calma, sin juicios, y explica con claridad.
-- Atiende: medicina general (fiebre, dolor, gripe, infecciones respiratorias, dolor de cabeza, malestar general, orientación diagnóstica), salud mental, control de peso. Puede emitir, solo si tras evaluar lo considera justificado: recetas electrónicas, órdenes de exámenes de laboratorio o imágenes, certificados y licencias médicas electrónicas. Para sus pacientes con licencia rechazada u observada por Isapre o COMPIN, informe para apelar sin costo adicional.
+- Atiende: medicina general (fiebre, dolor, gripe, infecciones respiratorias, dolor de cabeza, malestar general, orientación diagnóstica), salud mental, control de peso. Puede emitir, solo si tras evaluar lo considera justificado: recetas electrónicas, órdenes de exámenes de laboratorio o imágenes, certificados y licencias médicas electrónicas. Licencias: como médico general, cada licencia es de hasta 14 días (2 semanas) y se puede renovar como máximo una vez. Es un tope, no una promesa: si preguntan por días, explica el tope y que la duración la decide el doctor al evaluar. Para sus pacientes con licencia rechazada u observada por Isapre o COMPIN, informe para apelar sin costo adicional.
 - No atiende: urgencias ni riesgo vital (SAMU 131 o urgencia más cercana), menores de 18, bonos Fonasa/Dipreca, convenios con clínicas o Isapres, informes periciales para juicios o procesos legales.
 - Valores: atención particular, sin bono. Según previsión: Fonasa o Dipreca ${PRICES.fonasa}; Isapre ${PRICES.isapre}. Precio único: si el doctor los indica, receta, orden, certificado o licencia van incluidos sin costo adicional.
 - Horario: lunes a viernes de 18:00 a 19:40 y sábados de 11:00 a 11:40. Cada consulta es un bloque de 20 minutos. Las horas libres reales solo se ven en la agenda.
@@ -37,7 +37,7 @@ Español de Chile, educado y cálido como una buena secretaria de consulta: trat
 }
 
 const PROMISE_RE = /garantiz|te aseguro|asegurad[oa]|seguro que te|sin falta|te (va|van) a (dar|emitir|otorgar|recetar)|te (dar[aá]|emitir[aá]|otorgar[aá]|recetar[aá])(?![\p{L}])/iu;
-const LICENSE_DAYS_RE = /\b\d+\s*d[ií]as?\s+de\s+(licencia|reposo)/i;
+const LICENSE_DAYS_RE = /\b(?!14\b)\d+\s*d[ií]as?\s+de\s+(licencia|reposo)/i;
 const DRUG_RE = /\b\d+\s?mg\b|paracetamol|ibuprofeno|ketoprofeno|diclofenaco|naproxeno|tramadol|clonazepam|alprazolam|lorazepam|zopiclona|sertralina|fluoxetina|escitalopram|quetiapina|amoxicilina|azitromicina|omeprazol|metformina|ozempic|semaglutida/i;
 
 // Devuelve el motivo del rechazo o null si la respuesta se puede enviar.
