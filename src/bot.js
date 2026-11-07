@@ -14,6 +14,8 @@ const { redact } = require('./ai');
 // Claude con la política; el flujo con RUT se entra con 5 o frases cortas.
 const FIXED_IN_CHAT = new Set(['crisis', 'urgencia', 'clinico', 'menu']);
 const SHORT_WORDS = 3;
+// Tope de respuestas de Claude por conversación: frena a quien intente gastar el crédito.
+const MAX_AI_REPLIES = 15;
 const MAX_HISTORY = 8;
 
 // Respuesta del bot: texto de respaldo + sección para mensajes interactivos.
@@ -92,6 +94,8 @@ function createBot(config, { ai = null } = {}) {
   }
 
   async function chatReply(session, text, isFirstMessage) {
+    if ((session.aiReplies || 0) >= MAX_AI_REPLIES) return null;
+    session.aiReplies = (session.aiReplies || 0) + 1;
     const history = [...(session.history || []), { role: 'user', content: redact(text) }];
     const raw = await ai.converse(knowledge, history);
     const problem = raw ? checkReply(raw) : 'sin_respuesta';

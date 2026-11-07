@@ -99,6 +99,14 @@ test('revisión automática: aprueba lo correcto y rechaza promesas, remedios, e
   assert.equal(checkReply('x'.repeat(1000)), 'larga');
 });
 
+test('modo chat: tras 15 respuestas de Claude en una conversación, sigue con respuestas fijas', async () => {
+  const calls = [];
+  const bot = chatBot('Con gusto te cuento.', calls);
+  const session = old();
+  for (let i = 0; i < 20; i += 1) await bot.handleMessage(session, `pregunta larga número ${i} sobre cómo funciona todo esto`);
+  assert.equal(calls.length, 15);
+});
+
 test('sin AI_MODE=chat se mantiene el modo clasificador', () => {
   const ai = createAi(testConfig({ AI_ENABLED: 'true' }).ai, { classifier: async () => 'valores' });
   assert.equal(ai.mode, 'classify');
