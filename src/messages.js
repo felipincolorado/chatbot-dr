@@ -198,7 +198,7 @@ function buildMessages(config) {
     // Texto simple: el enlace se ve mejor sin botones.
     pacienteDerivacion: (data) =>
       `Listo, ${data.name.split(' ')[0]}.\n\n` +
-      'Toca el enlace para escribir a atención a pacientes. El mensaje ya va redactado con tus datos; solo debes enviarlo:\n' +
+      'Toca el enlace para escribir a atención a pacientes (responde lunes a viernes de 9:00 a 19:00 y sábados de 9:00 a 13:00). El mensaje ya va redactado con tus datos; solo debes enviarlo:\n' +
       `${buildHumanLink(config, data)}\n\n` +
       `WhatsApp oficial de atención a pacientes del ${config.doctorFullName}.`,
 
